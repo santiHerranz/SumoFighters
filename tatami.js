@@ -10,17 +10,17 @@ class Tatami {
 
 		this.radius = r;
 		this.border = 20;
-		
-		this.vx = 0;
-		this.vy = 0;
-
-		this.health = 100;
-
-		this.clicked = false;
 
 		this.inCollision = false;
 
 		this.owner = null;
+
+
+		this.walls = [];
+		this.offset = this.radius;
+		this.walls.push(new Boundary(this.pos.x, this.pos.y - this.offset, this.pos.x, this.pos.y + this.offset)); // vertical
+		this.walls.push(new Boundary(this.pos.x - this.offset, this.pos.y, this.pos.x + this.offset, this.pos.y)); // horizontal
+
 
 	}
 
@@ -33,9 +33,9 @@ class Tatami {
 	draw() {
 
 		ctx.fillStyle = "rgb(255,255,255,0.9)";
-		ctx.globalAlpha = 0.9;
+//		ctx.globalAlpha = 0.9;
 		ctx.beginPath();
-		ctx.arc(this.pos.x, this.pos.y, this.radius+this.border,0,2*Math.PI);
+		ctx.arc(this.pos.x, this.pos.y, this.radius,0,2*Math.PI);
 		ctx.closePath();
 		ctx.fill();
 
@@ -43,9 +43,22 @@ class Tatami {
 		ctx.fillStyle = this.bgcolor;
 
 		ctx.beginPath();
-		ctx.arc(this.pos.x, this.pos.y, this.radius, 0, 2 * Math.PI);
+		ctx.arc(this.pos.x, this.pos.y, this.radius-this.border, 0, 2 * Math.PI);
 		ctx.closePath();
 		ctx.fill();
+
+		// Player Lines 
+		ctx.save()
+		ctx.strokeStyle = "rgb(255,255,255,1)";
+		ctx.lineWidth = 10;
+		ctx.translate(this.pos.x,this.pos.y);
+		ctx.moveTo(-50,-40);
+		ctx.lineTo(-50,+40);
+		ctx.stroke();
+		ctx.moveTo(+50,-40);
+		ctx.lineTo(+50,+40);
+		ctx.stroke();
+		ctx.restore();
 
 
 	}

@@ -7,15 +7,24 @@
   <link href="https://unpkg.com/tailwindcss@^1.0/dist/tailwind.min.css" rel="stylesheet">
   <style>
     body {
-      margin: 0;
+      margin: 0; overflow: hidden;
     }
   </style>
 </head>
 
 <body>
 
-  <div class="fixed w-full text-white">
-    <p>Score: <span id="scoreEl"></span> </p>
+  <div class="fixed w-full text-white grid justify-items-start">
+    <div class="p-8">Score: <span id="scoreEl"></span> </div>
+  </div>
+  <div class="fixed w-full text-white grid justify-items-end">
+    <div class="p-4">
+    Time:<input id=slider_masterVolume title='time' type=range min=1 max=50 value=12 style=width:200px oninput=UpdateSettings();>
+  </div>
+  <div class="p-2">
+    <input type=checkbox id=input_showrays onchange="UpdateSettings();">Rays
+  </div>
+
   </div>
 
 
@@ -46,20 +55,33 @@
       </h1>
       <p class="text-sm text-gray-700 mb-4">Points</p>
       <div>
-        <button class="button bg-green-500 text-white w-full py-3 rounded-full" id="gameBtn">Start game</button>
+        <button class="button bg-green-600 text-white w-full py-3 rounded-full" id="gameBtn">Start game</button>
       </div>
     </div>
   </div>
-
   <canvas id="canvas"></canvas>
-
+  <script>
+  function UpdateSettings()
+  {
+      const v = slider_masterVolume.value;
+      deltaTime = v / 100;
+  
+      showRays = input_showrays.checked;
+  
+  }    
+    </script>  
+  <script src="ZzFXMicro.min.js"></script>
   <script src="vector.js"></script>
   <script src="ray.js"></script>
   <script src="boundary.js"></script>
   <script src="inputs.js"></script>
   <script src="tatami.js"></script>
+  <script src="drive.js"></script>
   <script src="player.js"></script>
   <script src="app.js"></script>
+
+
+
 
 </body>
 
