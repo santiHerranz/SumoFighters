@@ -240,7 +240,7 @@ function drive(player) {
 
 	for (let ray of player.vision) {
 		if (ray.point != null) {
-			if (ray.distance < 300  ) {
+			if (ray.distance < 400  ) {
 
 				autoSpeed += 1+(Math.random()-0.5)*0.2;
 

@@ -28,7 +28,7 @@ class Player {
 		this.walls.push(new Boundary(this.pos.x - this.offset, this.pos.y, this.pos.x + this.offset, this.pos.y)); // horizontal
 
 
-		this.showRays = true;
+		this.showRays = false;
 		this.fieldOfView = 120;
 		//    this.rayCount = this.fieldOfView / 6;
 		this.rayCount = this.fieldOfView / 30;
