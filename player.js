@@ -1,16 +1,17 @@
 
 
 class Player {
-	constructor(x, y) {
+	constructor(x, y, r) {
 
 		this.bgcolor = "white";
 		this.color = "black";
-		this.radius = 40;
+		this.radius = r;
 
 		this.vx = 0;
 		this.vy = 0;
 
 		this.health = 100;
+		this.energy = 100;
 
 		this.clicked = false;
 		this.inCollision = false;
@@ -106,6 +107,9 @@ class Player {
 	}
 
 	rotate(angle) {
+
+		this.energy -= 0.1;
+
 		this.heading += angle;
 		let index = 0;
 		for (let a = -this.fieldOfView / 2; a <= this.fieldOfView / 2; a += this.rayCount) {
@@ -118,11 +122,15 @@ class Player {
 	}
 
 	move(amt) {
+		this.energy -= 0.1;
+
 		const vel = Vector.fromAngle(this.heading, amt);
 		this.pos.add(vel);
 	}
 
 	sideMove(amt) {
+		this.energy -= 0.1;
+
 		const vel = Vector.fromAngle(this.heading + Math.PI / 2, amt);
 		this.pos.add(vel);
 	}

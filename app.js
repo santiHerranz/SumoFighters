@@ -32,7 +32,7 @@ const GAME_STATUS = {
 	GAME_RUNNING: 10,
 	GAME_GOAL: 20,
 	GAME_TIMEOVER: 90,
-	GAME_OVER: 100
+	ROUND_OVER: 100
 };
 
 let gameStatus = GAME_STATUS.GAME_INIT;
@@ -60,16 +60,17 @@ function prepare() {
 
 
 	// tatami
-	tatami = new Tatami(width / 2, height / 2);
-	tatami.radius = 225;
+	tatami = new Tatami(width / 2, height / 2, 400);
 	tatami.bgcolor = "rgb(0,0,0,1)";
 
+	let playerSize = 40;
+
 	// player A
-	player_A = new Player(width * 5 / 12, height / 2);
+	player_A = new Player(width * 5 / 12, height / 2, playerSize);
 	player_A.bgcolor = "rgb(0,0,255,0.9)";
 
 	// player B
-	player_B = new Player(width * 7 / 12, height / 2);
+	player_B = new Player(width * 7 / 12, height / 2, playerSize);
 	player_B.bgcolor = "rgb(255,0,0,0.9)";
 
 	player_A.walls.forEach(wall => {
@@ -112,6 +113,9 @@ function init() {
 	setInitPosition();
 
 	modalEl.style.display = 'none';
+	yukonA.style.display = 'none';
+	yukonB.style.display = 'none';
+
 
 	setTimeout(() => {
 		gameStatus = GAME_STATUS.GAME_RUNNING;
@@ -220,13 +224,13 @@ function step() {
 		player_A.step();
 		player_B.step();
 
-		if (checkTatamiLimits(player_A,tatami)) {
-			score_B += 1;
-			scoreGoal();
-		}
 		if (checkTatamiLimits(player_B,tatami)) {
 			score_A += 1;
-			scoreGoal();
+			scoreGoal("A");
+		}
+		if (checkTatamiLimits(player_A,tatami)) {
+			score_B += 1;
+			scoreGoal("B");
 		}
 
 	}
@@ -240,7 +244,7 @@ function drive(player) {
 
 	for (let ray of player.vision) {
 		if (ray.point != null) {
-			if (ray.distance < 400  ) {
+			if (ray.distance < tatami.radius  ) {
 
 				autoSpeed += 1+(Math.random()-0.5)*0.2;
 
@@ -255,6 +259,8 @@ function drive(player) {
 					autoRot += Math.PI/180*giro*.1;
 
 			}
+		} else {
+			autoSpeed -= 5;
 		}
 	}
 
@@ -311,9 +317,10 @@ function draw() {
 	player_A.draw()
 	player_B.draw()
 
-	var imgSize = 200;
-	var imgData = ctx.getImageData(player_A.pos.x - imgSize * 1 / 10, player_A.pos.y - imgSize * 1 / 2, imgSize, imgSize);
-	ctx.putImageData(imgData, 10, 70);
+	// CAMERA VIEW
+	// var imgSize = 200;
+	// var imgData = ctx.getImageData(player_A.pos.x - imgSize * 1 / 10, player_A.pos.y - imgSize * 1 / 2, imgSize, imgSize);
+	// ctx.putImageData(imgData, 10, 70);
 
 	scoreEl.innerHTML = score_A + ' - ' + score_B;
 }
@@ -322,22 +329,26 @@ function checkTatamiLimits(player, tatami) {
 	return !tatami.collide(player);
 }
 
-function scoreGoal() {
+function scoreGoal(yukon) {
 	gameStatus = GAME_STATUS.GAME_GOAL;
-	gameBtn.innerHTML = 'Continue game';
-	scoreBigEl.innerHTML = score_A + ' - ' + score_B;
+
+	scoreABigEl.innerHTML = score_A;
+	scoreBBigEl.innerHTML = score_B;
+
+	if (yukon == "A")
+	yukonA.style.display = 'flex';
+	if (yukon == "B")
+	yukonB.style.display = 'flex';
+
+	gameBtn.innerHTML = 'Next round';
 	modalEl.style.display = 'flex';
 
 	setTimeout(() => {
 		gameBtn.click();
-	}, 1000);
+	}, 3000);
 }
 
-function gameOver() {
-	gameStatus = GAME_STATUS.GAME_OVER;
-	scoreBigEl.innerHTML = score_A + ' - ' + score_B;
-	modalEl.style.display = 'flex';
-}
+
 
 gameBtn.addEventListener('click', () => {
 

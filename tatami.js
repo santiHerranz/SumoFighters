@@ -1,15 +1,16 @@
 
 
 class Tatami {
-	constructor(x,y) {
+	constructor(x,y,r) {
 
 		this.bgcolor = "white";
 		this.color = "yellow";
 
 		this.pos = createVector(x, y);
 
-		this.radius = 10;
-
+		this.radius = r;
+		this.border = 20;
+		
 		this.vx = 0;
 		this.vy = 0;
 
@@ -31,25 +32,19 @@ class Tatami {
 
 	draw() {
 
+		ctx.fillStyle = "rgb(255,255,255,0.9)";
 		ctx.globalAlpha = 0.9;
 		ctx.beginPath();
-		ctx.strokeStyle = "rgb(0,0,0,0.9)";
-		ctx.arc(width/2, height/2, 250,0,2*Math.PI);
+		ctx.arc(this.pos.x, this.pos.y, this.radius+this.border,0,2*Math.PI);
 		ctx.closePath();
-		ctx.stroke();
-		ctx.fillStyle = "rgb(255,255,255,0.9)";
 		ctx.fill();
 
-		ctx.strokeStyle = this.color;
+		ctx.strokeStyle = this.bgcolor;
+		ctx.fillStyle = this.bgcolor;
 
 		ctx.beginPath();
-
-
-		ctx.strokeStyle = this.bgcolor;
 		ctx.arc(this.pos.x, this.pos.y, this.radius, 0, 2 * Math.PI);
-		ctx.stroke();
-
-		ctx.fillStyle = this.bgcolor;
+		ctx.closePath();
 		ctx.fill();
 
 

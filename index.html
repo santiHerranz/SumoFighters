@@ -1,44 +1,66 @@
-
-
-
 <!DOCTYPE html>
 <html>
-  <head>
-    <title>B A S I C - SUMO ROBOT BATTLE</title>
-    <meta charset="UTF-8" />
-    <link href="https://unpkg.com/tailwindcss@^1.0/dist/tailwind.min.css" rel="stylesheet">
-    <style>body { 
+
+<head>
+  <title>B A S I C - SUMO ROBOT BATTLE</title>
+  <meta charset="UTF-8" />
+  <link href="https://unpkg.com/tailwindcss@^1.0/dist/tailwind.min.css" rel="stylesheet">
+  <style>
+    body {
       margin: 0;
-    } </style>
-  </head>
+    }
+  </style>
+</head>
 
-  <body>
+<body>
 
-    <div class="fixed w-full text-white">
-      <p>Score: <span id="scoreEl"></span> </p>
-    </div>
+  <div class="fixed w-full text-white">
+    <p>Score: <span id="scoreEl"></span> </p>
+  </div>
 
 
-    <div class="fixed inset-0 flex items-center justify-center" id="modalEl">
-      <div class="bg-white max-w-md w-full p-6 text-center">
-        <h1 class="text-4xl font-bold leading-none" id="scoreBigEl">0</h1>
-        <p class="text-sm text-gray-700 mb-4">Points</p>
-        <div>
-          <button class="bg-blue-500 text-white w-full py-3 rounded-full" id="gameBtn">Start game</button>
-        </div>
+  <div class="fixed inset-0 flex items-center justify-center rounded-lg" id="modalEl">
+    <div class="bg-white border-gray-300 max-w-md w-full p-6 text-center rounded-lg">
+      <h1 class="text-4xl font-bold leading-none p-8 text-white">
+
+        <span class="relative inline-flex rounded-md shadow-sm">
+          <span class="bg-blue-600 p-4 rounded-lg" id="scoreABigEl"></span>
+          <span id="yukonA" class="flex absolute  h-5 w-5 top-0 right-0 -mt-1 -mr-1">
+            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-pink-400 opacity-75"></span>
+            <span class="relative inline-flex rounded-full h-5 w-5 bg-pink-500"></span>
+          </span>
+
+        </span>
+        <span class="text-black"> vs</span>
+        <span class="relative inline-flex rounded-md shadow-sm">
+
+          <span class="bg-red-600 p-4 rounded-lg" id="scoreBBigEl"></span>
+          <span id="yukonB" class="flex absolute  h-5 w-5 top-0 right-0 -mt-1 -mr-1">
+            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-pink-400 opacity-75"></span>
+            <span class="relative inline-flex rounded-full h-5 w-5 bg-pink-500"></span>
+          </span>
+
+        </span>
+
+
+      </h1>
+      <p class="text-sm text-gray-700 mb-4">Points</p>
+      <div>
+        <button class="button bg-green-500 text-white w-full py-3 rounded-full" id="gameBtn">Start game</button>
       </div>
     </div>
+  </div>
 
-    <canvas id="canvas"></canvas>
+  <canvas id="canvas"></canvas>
 
-    <script src="vector.js"></script>
-    <script src="ray.js"></script>
-    <script src="boundary.js"></script>
-    <script src="inputs.js"></script>
-    <script src="tatami.js"></script>
-    <script src="player.js"></script>
-    <script src="app.js"></script>
+  <script src="vector.js"></script>
+  <script src="ray.js"></script>
+  <script src="boundary.js"></script>
+  <script src="inputs.js"></script>
+  <script src="tatami.js"></script>
+  <script src="player.js"></script>
+  <script src="app.js"></script>
 
-  </body>
+</body>
+
 </html>
-
