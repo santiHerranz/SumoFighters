@@ -11,13 +11,20 @@ class Player {
 		this.energy = 100;
 
 		this.pos = createVector(x, y);
+		this.lastPos = this.pos.copy();
+
+		this.speed = createVector(0, 0); // current speed
+		this.distance = 0;
 
 		this.heading = 0;
 
+		this.strategyFunc = IdleDrive;
+		this.memory = null; // {distance:0, dir:1};
+
 		this.walls = [];
 		this.offset = this.radius;
-		this.walls.push(new Boundary(this.pos.x, this.pos.y - this.offset, this.pos.x, this.pos.y + this.offset)); // vertical
-		this.walls.push(new Boundary(this.pos.x - this.offset, this.pos.y, this.pos.x + this.offset, this.pos.y)); // horizontal
+		this.walls.push(new Boundary(this.pos.x, this.pos.y - this.offset, this.pos.x, this.pos.y + this.offset, BOUNDARY_TYPE.PLAYER)); // vertical
+		this.walls.push(new Boundary(this.pos.x - this.offset, this.pos.y, this.pos.x + this.offset, this.pos.y, BOUNDARY_TYPE.PLAYER)); // horizontal
 
 
 		this.fieldOfView = 120;
@@ -28,12 +35,16 @@ class Player {
 
 		this.rays = [];
 		this.vision = [];
+		this.visionWallLayer = [];
+		this.visionPlayersLayer = [];
+		this.visionDojoLayer = [];
+
 
 		// this.rays.push(new Ray(this.pos, radians(0), 0));
 		// this.rays.push(new Ray(this.pos, radians(-20), -1));
 		// this.rays.push(new Ray(this.pos, radians(+20), 1));
 		for (let a = -this.halfFieldOfView; a <= this.halfFieldOfView; a += this.deltaFieldOfView) {
-			this.rays.push(new Ray(this.pos, radians(a)));
+			this.rays.push(new Ray(this.pos, radians(a), BOUNDARY_TYPE.PLAYER));
 		}
 
 		this.showRays = showRays;
@@ -124,7 +135,7 @@ class Player {
 		if (this.showRays) {
 			ctx.lineWidth = 1.5;
 
-			for (let ray of this.vision) {
+			for (let ray of this.visionPlayersLayer) {
 				if (ray.point != null) {
 
 					if (ray.distance < 300)
@@ -132,11 +143,28 @@ class Player {
 					else
 						ctx.strokeStyle = ray.color;
 
-				}
 				ctx.beginPath();
 				ctx.moveTo(this.pos.x, this.pos.y);
 				ctx.lineTo(ray.point.x, ray.point.y);
 				ctx.stroke();
+			}
+
+			}
+
+
+			for (let ray of this.visionDojoLayer) {
+				if (ray.point != null) {
+
+					if (ray.distance < 300)
+						ctx.strokeStyle = "rgb(255,0,0,0.6)"
+					else
+						ctx.strokeStyle = ray.color;
+
+				ctx.beginPath();
+				ctx.moveTo(this.pos.x, this.pos.y);
+				ctx.lineTo(ray.point.x, ray.point.y);
+				ctx.stroke();
+			}
 
 			}
 
@@ -158,36 +186,49 @@ class Player {
 		// this.rays[1].setAngle(radians(-20) + this.heading);
 		// this.rays[2].setAngle(radians(+20) + this.heading);
 
-		this.energy -= deltaTime*0.1;
+		// cost
+		if (angle != 0 )
+			this.energy -= deltaTime*0.01;
 	}
 
 	move(amt) {
 
-		if (this.energy <= 0)
+		if (this.aenergy <= 0)
 			return;
 
+		this.lastPos = this.pos.copy();
+
 		const vel = Vector.fromAngle(this.heading, deltaTime*amt);
+		this.speed = vel;
 		this.pos.add(vel);
 
-		this.energy -= deltaTime*0.1;
+		let d = this.pos.copy().sub(this.lastPos).mag();
+		this.distance += d;
 
+		// cost
+		this.energy -= d*0.01;
 	}
 
 	sideMove(amt) {
 		if (this.energy <= 0)
 			return;
 
-		const vel = Vector.fromAngle(this.heading + Math.PI / 2, deltaTime*amt);
-		this.pos.add(vel);
+		this.lastPos = this.pos.copy();
 
-		this.energy -= deltaTime*0.1;
+		const vel = Vector.fromAngle(this.heading + Math.PI / 2, deltaTime*amt);
+		this.speed = vel;
+		this.pos.add(this.speed);
+
+
+		//this.energy -= deltaTime*0.5;
 	}
 
 	update(position) {
 		this.pos.set(position.x, position.y);
 	}
 
-	scan(walls) {
+
+	scan(boundaries, type, layer) {
 
 		for (let i = 0; i < this.rays.length; i++) {
 			const ray = this.rays[i];
@@ -195,7 +236,10 @@ class Player {
 			let record = Infinity;
 
 			//
-			for (let wall of walls) {
+			if (type != BOUNDARY_TYPE.ALL )
+				boundaries = boundaries.filter(b => { return b.type == type});
+
+			for (let wall of boundaries) { 
 				const pt = ray.cast(wall);
 				if (pt) {
 					let d = Vector.dist(this.pos, pt);
@@ -206,13 +250,14 @@ class Player {
 				}
 			}
 
-			this.vision[i] = {
+			layer[i] = {
 				index: i,
 				dir: ray.dir,
 				point: closest,
 				distance: record,
 				color: "rgb(255,255,255,0.1)",
-				colorActive: "rgb(255,255,255,0.6)"
+				colorActive: "rgb(255,255,255,0.6)",
+				type: type
 			};
 
 		}

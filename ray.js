@@ -5,10 +5,11 @@
 // Rendering Ray Casting
 
 class Ray {
-    constructor(pos, angle, index, color = "#fff") {
+    constructor(pos, angle, index, type, color = "#fff") {
       this.pos = pos;
       this.dir = Vector.fromAngle(angle);
       this.index = index;
+      this.type = type;
       this.color = color;
     }
   

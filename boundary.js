@@ -5,16 +5,17 @@
 // Rendering Ray Casting
 
 class Boundary {
-    constructor(x1, y1, x2, y2, type = 1) {
+    constructor(x1, y1, x2, y2, type) {
       this.a = createVector(x1, y1);
       this.b = createVector(x2, y2);
-      this.type = 1;
+      this.type = type;
     }
   
     show() {
 
       if (showBoundaries) {
-        ctx.strokeStyle  = "#fff";
+        ctx.strokeStyle  = "#fa0";
+        ctx.lineWidth = 4
 
         ctx.beginPath();
         ctx.moveTo(this.a.x, this.a.y);
