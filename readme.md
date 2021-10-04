@@ -4,14 +4,17 @@ Javascript Simulator for testing robot strategies in sumo battle
 
 Work in progress...
 
+<a href="https://santiherranz.github.io/SumoFighters/" target="_blank"><b>Play simulator</b></a>
+
 ## Manual Movement (Only in remote strategy)
+- Arrow KEYS or WASD
 - W Key = Move forward 
 - W Key + SHIFT Key = Move forward double speed 
 - S Key = Move backward
 - A Key = Turn left
 - D Key = Turn right
-- A Key + SHIFT Key Side move to the left
-- D Key + SHIFT Key Side move to the right
+- A Key + SHIFT Key = Side move to the left
+- D Key + SHIFT Key = Side move to the right
 
 ## Robot strategies
 - Idle
