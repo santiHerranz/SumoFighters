@@ -1,12 +1,38 @@
-# S U M O
+# ROBOT SUMO BATTLE
 
-## Dojo (Dohyo)
-- Define right side as red and the left side as blue.
-- Starting line (Shikiri-sen)\
-Located 10 cm right and left from the center of the Dojo
-- White line delimits the external border of the Dojo (Tawara)\
-The Tawara shall be considered as within of the Dohyo
-- Check limits
+Javascript Simulator for testing robot strategies in sumo battle
+
+Work in progress...
+
+## Manual Movement (Only in remote strategy)
+- W Key = Move forward 
+- W Key + SHIFT Key = Move forward double speed 
+- S Key = Move backward
+- A Key = Turn left
+- D Key = Turn right
+- A Key + SHIFT Key Side move to the left
+- D Key + SHIFT Key Side move to the right
+
+## Robot strategies
+- Idle
+- Remote control
+- Face opponent
+- Keep inside
+- Attack: Try to align to center of opponent and push
+- Defend: Try to align to center of opponent and push when contact
+- Evade
+
+## Energy
+- Movements cost energy
+- Forward and backward cost is proportioanl to distance
+- Rotation cost is porportioal to time
+
+## The Battle
+
+- Battle time shall be based on three matches within three minutes
+- The robot who gets two Yuko points during the battle time will be deemed the winner
+- If only one Yuko Point has been won by the end of the battle time, the team which has won the Yuko Point will be deemed the winner.
+- If neither of the teams wins the match within the battle time, battle time will be extended by three minutes. In the extension time, the team which gets one Yuko Point will be deemed the winner of the battle.
 
 ## Robot movements
 - move forward
@@ -22,26 +48,18 @@ The Tawara shall be considered as within of the Dohyo
 - turn speed
 
 
-## Robot strategies
-- Idle
-- Remote control
-- Face opponent
-- Keep inside
-- Attack: Try to align to center of opponent and push
-- Defend: Try to align to center of opponent and Push
-- Evade
 
-## Energy
-- Movements cost energy
-- Forward and backward cost is proportioanl to distance
-- Rotation cost is porportioal to time
 
-## Battle
 
-- Battle time shall be based on three matches within three minutes
-- The robot who gets two Yuko points during the battle time will be deemed the winner
-- If only one Yuko Point has been won by the end of the battle time, the team which has won the Yuko Point will be deemed the winner.
-- If neither of the teams wins the match within the battle time, battle time will be extended by three minutes. In the extension time, the team which gets one Yuko Point will be deemed the winner of the battle.
+
+## Dojo (Dohyo)
+- Right side is color red and the left side is color blue.
+- Starting line (Shikiri-sen)\
+Located 10 cm right and left from the center of the Dojo
+- White line delimits the external border of the Dojo (Tawara)\
+The Tawara shall be considered as within of the Dohyo
+- Check limits
+
 
 ## Yuko Point
 If any of the following situations arises, the contestant shall get a Yuko Point:
@@ -57,15 +75,6 @@ If any of the following situations arises, the contestant shall get a Yuko Point
 
 
 
-
-## Manual Movement (Only in remote strategy)
-- W Key = Move forward 
-- W Key + SHIFT Key = Move forward double speed 
-- S Key = Move backward
-- A Key = Turn left
-- D Key = Turn right
-- A Key + SHIFT Key Side move to the left
-- D Key + SHIFT Key Side move to the right
 
 ## Vision
 - Scan boundaries
