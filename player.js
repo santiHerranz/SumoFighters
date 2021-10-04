@@ -18,13 +18,10 @@ class Player {
 
 		this.heading = 0;
 
-		this.strategyFunc = IdleDrive;
-		this.memory = null; // {distance:0, dir:1};
+		this.inContact = false;
 
-		this.walls = [];
-		this.offset = this.radius;
-		this.walls.push(new Boundary(this.pos.x, this.pos.y - this.offset, this.pos.x, this.pos.y + this.offset, BOUNDARY_TYPE.PLAYER)); // vertical
-		this.walls.push(new Boundary(this.pos.x - this.offset, this.pos.y, this.pos.x + this.offset, this.pos.y, BOUNDARY_TYPE.PLAYER)); // horizontal
+		this.strategyFunc = Strategy.IdleDrive;
+		this.memory = null; // {distance:0, dir:1};
 
 
 		this.fieldOfView = 120;
@@ -34,18 +31,21 @@ class Player {
 		//this.rayCount = this.fieldOfView / 30;
 
 		this.rays = [];
-		this.vision = [];
-		this.visionWallLayer = [];
-		this.visionPlayersLayer = [];
-		this.visionDojoLayer = [];
+		this.visionLayer = [];
+		this.visionLayer[VISION_LAYER.DOJO] = [];
+		this.visionLayer[VISION_LAYER.PLAYER] = [];
 
-
-		// this.rays.push(new Ray(this.pos, radians(0), 0));
-		// this.rays.push(new Ray(this.pos, radians(-20), -1));
-		// this.rays.push(new Ray(this.pos, radians(+20), 1));
 		for (let a = -this.halfFieldOfView; a <= this.halfFieldOfView; a += this.deltaFieldOfView) {
 			this.rays.push(new Ray(this.pos, radians(a), BOUNDARY_TYPE.PLAYER));
 		}
+
+
+		this.walls = [];
+		// These walls do not interfere with your own beam.
+		this.offset = this.radius;
+		this.walls.push(new Boundary(this.pos.x, this.pos.y - this.offset, this.pos.x, this.pos.y + this.offset, BOUNDARY_TYPE.PLAYER)); // vertical
+		this.walls.push(new Boundary(this.pos.x - this.offset, this.pos.y, this.pos.x + this.offset, this.pos.y, BOUNDARY_TYPE.PLAYER)); // horizontal
+
 
 		this.showRays = showRays;
 		this.showLifeIndicator = true;
@@ -72,10 +72,52 @@ class Player {
 
 	draw() {
 
+
+
+		// Ray
+		if (this.showRays) {
+			ctx.lineWidth = 1.5;
+
+			for (let ray of this.visionLayer[VISION_LAYER.PLAYER]) {
+				if (ray.point != null) {
+
+					if (ray.distance < 300)
+						ctx.strokeStyle = "rgb(255,255,0,0.6)"
+					else
+						ctx.strokeStyle = ray.color;
+
+				ctx.beginPath();
+				ctx.moveTo(this.pos.x, this.pos.y);
+				ctx.lineTo(ray.point.x, ray.point.y);
+				ctx.stroke();
+			}
+
+			}
+
+
+			for (let ray of this.visionLayer[VISION_LAYER.DOJO]) {
+				if (ray.point != null) {
+
+					if (ray.distance < 300)
+						ctx.strokeStyle = "rgb(255,0,0,0.6)"
+					else
+						ctx.strokeStyle = ray.color;
+
+				ctx.beginPath();
+				ctx.moveTo(this.pos.x, this.pos.y);
+				ctx.lineTo(ray.point.x, ray.point.y);
+				ctx.stroke();
+			}
+
+			}
+
+		}		
+
 		// Body
 		ctx.fillStyle = this.bgcolor;
 		ctx.strokeStyle = this.color;
-		ctx.lineWidth = 4;
+
+		ctx.lineWidth = this.inContact?6:2;
 		ctx.beginPath();
 		ctx.arc(this.pos.x, this.pos.y, this.radius, 0, Math.PI * 2);
 		ctx.closePath();
@@ -120,6 +162,8 @@ class Player {
 
 			ctx.rotate(Math.PI);
 			ctx.font = 'bold 10px verdana';
+			ctx.shadowColor="black";
+			ctx.shadowBlur = 3;
 			ctx.fillStyle = 'white';
 	
 			var title = this.name;
@@ -131,44 +175,6 @@ class Player {
 			ctx.restore();
 		}
 
-		// Ray
-		if (this.showRays) {
-			ctx.lineWidth = 1.5;
-
-			for (let ray of this.visionPlayersLayer) {
-				if (ray.point != null) {
-
-					if (ray.distance < 300)
-						ctx.strokeStyle = "rgb(255,255,0,0.6)"
-					else
-						ctx.strokeStyle = ray.color;
-
-				ctx.beginPath();
-				ctx.moveTo(this.pos.x, this.pos.y);
-				ctx.lineTo(ray.point.x, ray.point.y);
-				ctx.stroke();
-			}
-
-			}
-
-
-			for (let ray of this.visionDojoLayer) {
-				if (ray.point != null) {
-
-					if (ray.distance < 300)
-						ctx.strokeStyle = "rgb(255,0,0,0.6)"
-					else
-						ctx.strokeStyle = ray.color;
-
-				ctx.beginPath();
-				ctx.moveTo(this.pos.x, this.pos.y);
-				ctx.lineTo(ray.point.x, ray.point.y);
-				ctx.stroke();
-			}
-
-			}
-
-		}
 	}
 
 	rotate(angle) {

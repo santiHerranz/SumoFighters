@@ -9,13 +9,15 @@ var showRays = false;
 var showBoundaries = false;
 var showCameraView = false;
 
-let score = 0;
 let score_A = 0;
 let score_B = 0;
 
 const GAME_TIME_SECONDS = 60;
 
-var modalEl, scoreEl;
+var menuGame, modalEl, scoreEl;
+
+const GAME_MODE = {PLAYERvsCPU: 1, CPUvsCPU: 2}
+var gameMode = GAME_MODE.PLAYERvsCPU;
 
 var dojo;
 var players = [];
@@ -33,6 +35,7 @@ let walls = [];
 const GAME_STATUS = {
 	GAME_INIT: 0,
 	GAME_READY: 1,
+	GAME_MENU: 5,
 	GAME_RUNNING: 10,
 	GAME_GOAL: 20,
 	GAME_TIMEOVER: 90,
@@ -46,11 +49,17 @@ const BOUNDARY_TYPE = {
 	DOJO: 3
 };
 
+const VISION_LAYER = {
+	DOJO: 1,
+	PLAYER: 2,
+};
+
 let gameStatus = GAME_STATUS.GAME_INIT;
 
 function prepare() {
 
 	// start & score
+	menuGame = document.getElementById('menuGame');
 	modalEl = document.getElementById('modalEl');
 	scoreEl = document.getElementById('scoreEl');
 	scoreBigEl = document.getElementById('scoreBigEl');
@@ -70,7 +79,7 @@ function prepare() {
 	walls.push(new Boundary(width - offset, offset, width - offset, height - offset, BOUNDARY_TYPE.WALL)); // left
 
 
-	// tatami
+	// Create Dojo
 	dojo = new Dojo(width / 2, height / 2, 400);
 	dojo.bgcolor = "rgb(0,0,0,1)";
 	dojo.walls.forEach(wall => {
@@ -79,15 +88,9 @@ function prepare() {
 
 	let playerSize = 40;
 
-
-	// player_Dummy = new Player(width /2, height / 2, playerSize);
-	// player_Dummy.strategyFunc = remoteControlDrive;
-	// players.push(player_Dummy);
-	
-
 	// player A
-	player_A = new Player(width /2 - 100, height / 2, playerSize);
-	player_A.strategyFunc = ramdonDrive;
+	player_A = new Player(width / 2 - 100, height / 2, playerSize);
+	player_A.strategyFunc = Strategy.randomDrive; 
 	player_A.color = "rgb(0,0,255,0.99)";
 	player_A.bgcolor = "rgb(0,0,255,0.8)";
 	player_A.walls.forEach(wall => {
@@ -97,8 +100,8 @@ function prepare() {
 
 	if (true) {
 		//player B
-		player_B = new Player(width/2+100, height / 2, playerSize);
-		player_B.strategyFunc = ramdonDrive;
+		player_B = new Player(width / 2 + 100, height / 2, playerSize);
+		player_B.strategyFunc = Strategy.randomDrive;
 		player_B.color = "rgb(255,0,0,0.99)";
 		player_B.bgcolor = "rgb(255,0,0,0.8)";
 		player_B.walls.forEach(wall => {
@@ -107,45 +110,82 @@ function prepare() {
 		players.push(player_B);
 
 	}
+
+	if (false) {
+		// Dummy player for test
+		player_Dummy = new Player(width / 2, height / 2, playerSize);
+		player_Dummy.strategyFunc = Strategy.IdleDrive;
+		// No visible for others
+		// player_Dummy.walls.forEach(wall => {
+		// 	walls.push(wall);
+		// });
+		players.push(player_Dummy);
+	}
+
 	// set game time
 	gameTime = 60 * GAME_TIME_SECONDS; // 60 FPS * 60 seg = 1 minute
-	gameStatus = GAME_STATUS.GAME_READY;
+	gameStatus = GAME_STATUS.GAME_MENU;
+
+}
+
+function btnMenuStart(mode) {
+
+	gameMode = mode;
+	init();
+
+	menuGame.style.display = 'none';
+	gameStatus = GAME_STATUS.GAME_RUNNING;
 }
 
 function init() {
 
-	//
-	score = 0;
-
 	// Initial position
 	player_A.pos.x = width * 5 / 12;
 	player_A.pos.y = height / 2;
-	player_A.heading = Math.random() * 2 * Math.PI; // convert to radians
+	player_A.heading = Math.random() * Math.PI; // convert to radians
+	player_A.strategyFunc = Strategy.randomDrive;
+	if (gameMode == GAME_MODE.PLAYERvsCPU) {
+		player_A.strategyFunc = Strategy.remoteFacing;
+	}
 	// Initial energy
 	player_A.energy = 100;
+	player_A.memory = null;
 
 	if (player_B) {
 		player_B.pos.x = width * 7 / 12;
 		player_B.pos.y = height / 2;
-		player_B.heading = 180 + Math.random() * 2 * Math.PI; // convert to radians
+		player_B.heading = 180 + Math.random() * Math.PI; // convert to radians
+		player_B.strategyFunc = Strategy.randomDrive;
 
 		// Initial energy
 		player_B.energy = 100;
+		player_B.memory = null;
+	}
 
+	if (player_Dummy) {
+		player_Dummy.pos.x = width / 2;
+		player_Dummy.pos.y = height * 1 / 3;
+		player_Dummy.heading = 90; // convert to radians
+		// Initial energy
+		player_Dummy.energy = 100;
+		player_Dummy.memory = null;
 	}
 
 	modalEl.style.display = 'none';
 	yukonA.style.display = 'none';
 	yukonB.style.display = 'none';
 
-	setTimeout(() => {
-		gameStatus = GAME_STATUS.GAME_RUNNING;
-	}, 200);
+	if (gameMode == GAME_MODE.CPUvsCPU) {
+		setTimeout(() => {
+			gameStatus = GAME_STATUS.GAME_RUNNING;
+		}, 200);
+	}
+
 
 }
 
-function animate() {
-	requestAnimationFrame(animate);
+function loop() {
+	requestAnimationFrame(loop);
 	step();
 	draw();
 }
@@ -158,10 +198,10 @@ function step() {
 
 	if (gameStatus == GAME_STATUS.GAME_RUNNING) {
 
+
 		players.forEach(player => {
-			//player.scan(walls, BOUNDARY_TYPE.ALL, player.vision )
-			player.scan(walls, BOUNDARY_TYPE.PLAYER, player.visionPlayersLayer)
-			player.scan(walls, BOUNDARY_TYPE.DOJO, player.visionDojoLayer)
+			player.scan(walls, BOUNDARY_TYPE.PLAYER, player.visionLayer[VISION_LAYER.PLAYER])
+			player.scan(walls, BOUNDARY_TYPE.DOJO, player.visionLayer[VISION_LAYER.DOJO])
 
 		});
 
@@ -170,24 +210,28 @@ function step() {
 			drive(player, player.strategyFunc);
 		});
 
-		// contact
 
+
+		// Avoid same boring strategy
+		if (players[0].name == "DEFEND" && players[1].name == "DEFEND")
+			init();
+		if (players[0].name == "EVADE" && players[1].name == "EVADE")
+			init();
+
+		// contact
+		players.forEach(player => {
+			player.inContact = false;
+		});
 		let i = players.length;
-		while( i-- ) {
-			let dot = players[ i ];
+		while (i--) {
+			let dot = players[i];
 			var j = i;
-			if( j > 0 ) {
-				while( j-- ) {
-					collideAndPush(dot,players[ j ] );
+			if (j > 0) {
+				while (j--) {
+					collideAndPush(dot, players[j]);
 				}
 			}
 		}
-
-		// if (players.length > 1) {
-		// 	collideAndPush(player_A, player_B);
-		// 	collideAndPush(player_A, player_Dummy);
-		// 	collideAndPush(player_B, player_Dummy);
-		// }
 
 		players.forEach(player => {
 			player.step();
@@ -225,18 +269,21 @@ function collideAndPush(one, other) {
 	minDist = one.radius + other.radius;
 
 	if (dist < minDist) {
+		one.inContact = true;
+		other.inContact = true;
+		
 		var tx = one.pos.x + dx / dist * minDist,
 		ty = one.pos.y + dy / dist * minDist,
 		ax = (tx - other.pos.x),
 		ay = (ty - other.pos.y);
-	
+
 		const K = 0.9;
-	
+
 		one.pos.x -= ax * K;
 		one.pos.y -= ay * K;
 		other.pos.x += ax * K;
 		other.pos.y += ay * K;
-	
+
 	}
 
 }
@@ -299,16 +346,27 @@ function scoreGoal(yuko) {
 	gameBtn.innerHTML = 'Next round';
 	modalEl.style.display = 'flex';
 
-	setTimeout(() => {
-		gameBtn.click();
-	}, 1500);
+	if (gameMode == GAME_MODE.CPUvsCPU) {
+		setTimeout(() => {
+			gameBtn.click();
+		}, 1500);
+	}
 }
 
 gameBtn.addEventListener('click', () => {
-
 	init();
+	gameStatus = GAME_STATUS.GAME_RUNNING;
 
 });
+
+btnCPUvsCPU.addEventListener('click', () => {
+	btnMenuStart(GAME_MODE.CPUvsCPU);
+});
+btnPlayervsCPU.addEventListener('click', () => {
+	btnMenuStart(GAME_MODE.PLAYERvsCPU);
+});
+
+
 
 addEventListener('keydown', onkeydown);
 addEventListener('keyup', onkeyup);
@@ -345,7 +403,7 @@ addEventListener('mouseup', (event) => {
 
 prepare();
 init();
-animate();
+loop();
 
 function playSound(sound, p = 0) {
 

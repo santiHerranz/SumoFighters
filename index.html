@@ -2,9 +2,28 @@
 <html>
 
 <head>
-  <title>B A S I C - SUMO ROBOT BATTLE</title>
+  <title>ROBOT SUMO BATTLE SIMULATOR</title>
   <meta charset="UTF-8" />
   <link href="https://unpkg.com/tailwindcss@^1.0/dist/tailwind.min.css" rel="stylesheet">
+
+  <link rel="canonical" href="https://santiherranz.github.io/SumoFighters" />
+
+      <!-- Primary Meta Tags -->
+      <meta name="title" content="Javascript Sumo Robot Battle Simulator | Santi Herranz">
+      <meta name="description" content="Javascript Simulator for testing robot strategies in sumo battle.">
+
+      
+      <!-- Twitter -->
+      <meta property="twitter:card" content="summary_large_image">
+      <meta property="twitter:url" content="https://santiherranz.github.io/SumoFighters">
+      <meta property="twitter:title" content="Javascript Sumo Robot Battle Simulator | Santi Herranz">
+      <meta property="twitter:description" content="Javascript Simulator for testing robot strategies in sumo battle">
+      <meta property="twitter:image" content="https://santiherranz.github.io/SumoFighters/screenshot.png">
+
+
+<meta name="author" content="santiHerranz">
+<meta name="robots" content="index, follow">
+
   <style>
     body {
       margin: 0; overflow: hidden;
@@ -19,15 +38,28 @@
   </div>
   <div class="fixed w-full text-white grid justify-items-end">
     <div class="p-4">
-    Time:<input id=slider_masterVolume title='time' type=range min=1 max=50 value=12 style=width:200px oninput=UpdateSettings();>
+    Time speed:<input id=slider_masterTimeSpeed title='time' type=range min=1 max=50 value=12 style=width:200px oninput=UpdateSettings();>
   </div>
   <div class="p-2">
-    <input type=checkbox id=input_showrays onchange="UpdateSettings();">Rays
-    <!-- <button type="button" onclick="init()">Reset</button> -->
+    <input type=checkbox id=input_showrays onchange="UpdateSettings();">Show Rays
   </div>
 
   </div>
 
+
+  <div class="fixed inset-0 flex items-center justify-center rounded-lg" id="menuGame">
+    <div class="bg-white border-gray-300 max-w-md w-full p-6 space-y-10 text-center rounded-lg">
+      <h1 class="text-4xl font-bold leading-none p-8 text-black">
+        ROBOT SUMO BATTLE
+      </h1>
+      <div>
+        <button class="button bg-green-600 text-white w-full py-3 rounded-full" id="btnCPUvsCPU">Computer vs Computer</button>
+      </div>
+      <div>
+        <button class="button bg-green-600 text-white w-full py-3 rounded-full" id="btnPlayervsCPU">Player vs Computer</button>
+      </div>
+    </div>
+  </div>
 
   <div class="fixed inset-0 flex items-center justify-center rounded-lg" id="modalEl">
     <div class="bg-white border-gray-300 max-w-md w-full p-6 text-center rounded-lg">
@@ -60,11 +92,13 @@
       </div>
     </div>
   </div>
+
+
   <canvas id="canvas"></canvas>
   <script>
   function UpdateSettings()
   {
-      const v = slider_masterVolume.value;
+      const v = slider_masterTimeSpeed.value;
       deltaTime = v / 100;
   
       showRays = input_showrays.checked;
