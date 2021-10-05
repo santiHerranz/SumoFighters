@@ -25,6 +25,7 @@
   <meta name="author" content="santiHerranz">
   <meta name="robots" content="index, follow">
 
+  <link rel="stylesheet" href="gh-fork-ribbon.css">
   <style>
     body {
       margin: 0;
@@ -34,6 +35,8 @@
 </head>
 
 <body>
+
+
 
   
 
@@ -49,11 +52,11 @@
   <!--  -->
 
   <div class="fixed w-full text-white grid justify-items-end">
-    <div class="p-4">
+    <div class="p-4 px-40">
       Time speed:<input id=slider_masterTimeSpeed title='time' type=range min=1 max=50 value=12 style=width:200px
         oninput=UpdateSettings();>
     </div>
-    <div class="p-2">
+    <div class="p-2 px-40">
       <input type=checkbox id=input_showrays onchange="UpdateSettings();">Show Rays
     </div>
 
@@ -130,6 +133,8 @@
 
   <canvas id="canvas"></canvas>
 
+
+  <a class="github-fork-ribbon left-bottom fixed" href="https://github.com/santiHerranz/SumoFighters" data-ribbon="Fork me on GitHub" title="Fork me on GitHub">Fork me on GitHub</a>  
 
   <script>
     function UpdateSettings() {
