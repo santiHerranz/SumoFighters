@@ -14,10 +14,10 @@ let score_B = 0;
 
 const GAME_TIME_SECONDS = 60;
 
-var menuGame, modalEl, scoreEl;
+var menuGame, modalMenuGame, modalEl, scoreEl, strategyAFuncText, strategyBFuncText;
 
-const GAME_MODE = {PLAYERvsCPU: 1, CPUvsCPU: 2}
-var gameMode = GAME_MODE.PLAYERvsCPU;
+const GAME_MODE = {NONE:0, PLAYERvsCPU: 1, CPUvsCPU: 2}
+var gameMode = GAME_MODE.NONE;
 
 var dojo;
 var players = [];
@@ -60,10 +60,13 @@ function prepare() {
 
 	// start & score
 	menuGame = document.getElementById('menuGame');
+	modalMenuGame = document.getElementById("my-modal");
+
 	modalEl = document.getElementById('modalEl');
 	scoreEl = document.getElementById('scoreEl');
 	scoreBigEl = document.getElementById('scoreBigEl');
-
+	strategyAFuncText =  document.getElementById('strategyAFuncText');
+	strategyBFuncText =  document.getElementById('strategyBFuncText');
 	// canvas
 	canvas = document.getElementById('canvas');
 	width = window.innerWidth;
@@ -127,13 +130,21 @@ function prepare() {
 	gameStatus = GAME_STATUS.GAME_MENU;
 
 }
+function gameMenuBack() {
+	gameMode = GAME_MODE.NONE;
+	modalEl.style.display = 'none';
+	menuGame.style.display = 'flex';
+	modalMenuGame.style.display = 'flex';
+	gameStatus = GAME_STATUS.GAME_MENU;
+}
 
-function btnMenuStart(mode) {
+function gameMenuStart(mode) {
 
 	gameMode = mode;
 	init();
 
 	menuGame.style.display = 'none';
+	modalMenuGame.style.display = 'none';
 	gameStatus = GAME_STATUS.GAME_RUNNING;
 }
 
@@ -175,13 +186,6 @@ function init() {
 	yukonA.style.display = 'none';
 	yukonB.style.display = 'none';
 
-	if (gameMode == GAME_MODE.CPUvsCPU) {
-		setTimeout(() => {
-			gameStatus = GAME_STATUS.GAME_RUNNING;
-		}, 200);
-	}
-
-
 }
 
 function loop() {
@@ -190,11 +194,22 @@ function loop() {
 	draw();
 }
 
-function rgbToHex(rgb) {
-	return '#' + ((rgb[0] << 16) | (rgb[1] << 8) | rgb[2]).toString(16);
-};
+
 
 function step() {
+
+	if (gameMode == GAME_MODE.NONE) return;
+
+	if (gameStatus == GAME_STATUS.GAME_MENU) {
+
+	}
+
+	if (gameStatus == GAME_STATUS.GAME_GOAL) {
+
+		if (input.espace || input.enter)
+			gameBtn.click();
+
+	}
 
 	if (gameStatus == GAME_STATUS.GAME_RUNNING) {
 
@@ -204,6 +219,10 @@ function step() {
 			player.scan(walls, BOUNDARY_TYPE.DOJO, player.visionLayer[VISION_LAYER.DOJO])
 
 		});
+
+
+		strategyAFuncText.innerHTML = JSON.stringify(player_A.strategyFunc.toString().replace(/\n\n/g, "\n").replace(/\n/g, "&#13;").replace(/\r/g, "").replace(/\t/g, "  ") ); // .split(/\/\*\n|\n\*\//g).slice(1,-1).join()
+		strategyBFuncText.innerHTML = JSON.stringify(player_B.strategyFunc.toString().replace(/\n\n/g, "\n").replace(/\n/g, "&#13;").replace(/\r/g, "").replace(/\t/g, "  ") ); // .split(/\/\*\n|\n\*\//g).slice(1,-1).join()
 
 		players.forEach(player => {
 			//drive(player, avoidOutRingBackwarsDrive);
@@ -346,7 +365,7 @@ function scoreGoal(yuko) {
 	gameBtn.innerHTML = 'Next round';
 	modalEl.style.display = 'flex';
 
-	if (gameMode == GAME_MODE.CPUvsCPU) {
+	if (gameStatus == GAME_STATUS.GAME_GOAL && gameMode == GAME_MODE.CPUvsCPU) {
 		setTimeout(() => {
 			gameBtn.click();
 		}, 1500);
@@ -355,15 +374,24 @@ function scoreGoal(yuko) {
 
 gameBtn.addEventListener('click', () => {
 	init();
-	gameStatus = GAME_STATUS.GAME_RUNNING;
 
+	setTimeout(() => {
+		gameStatus = GAME_STATUS.GAME_RUNNING;
+	}, 200);
+
+});
+
+menuBackBtn.addEventListener('click', () => {
+
+ 	gameMenuBack();
+	
 });
 
 btnCPUvsCPU.addEventListener('click', () => {
-	btnMenuStart(GAME_MODE.CPUvsCPU);
+	gameMenuStart(GAME_MODE.CPUvsCPU);
 });
 btnPlayervsCPU.addEventListener('click', () => {
-	btnMenuStart(GAME_MODE.PLAYERvsCPU);
+	gameMenuStart(GAME_MODE.PLAYERvsCPU);
 });
 
 

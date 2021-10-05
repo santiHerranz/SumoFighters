@@ -48,7 +48,7 @@ class Player {
 
 
 		this.showRays = showRays;
-		this.showLifeIndicator = true;
+		this.showEnergyIndicator = true;
 
 	}
 
@@ -136,8 +136,9 @@ class Player {
 		ctx.stroke();
 		ctx.restore();
 
-		// Life indicator
-		if (this.showLifeIndicator) {
+		// Energy indicator
+		if (this.showEnergyIndicator) {
+
 			let offset = this.radius * 0.8;
 			ctx.save();
 			ctx.strokeStyle = "#ffcccc";
@@ -188,11 +189,8 @@ class Player {
 			this.rays[index].setAngle(radians(a) + this.heading);
 			index++;
 		}
-		// this.rays[0].setAngle(radians(0) + this.heading);
-		// this.rays[1].setAngle(radians(-20) + this.heading);
-		// this.rays[2].setAngle(radians(+20) + this.heading);
 
-		// cost
+		// Energy cost for rotate
 		if (angle != 0 )
 			this.energy -= deltaTime*0.01;
 	}
@@ -211,7 +209,7 @@ class Player {
 		let d = this.pos.copy().sub(this.lastPos).mag();
 		this.distance += d;
 
-		// cost
+		// energy cost of move
 		this.energy -= d*0.01;
 	}
 
@@ -225,8 +223,8 @@ class Player {
 		this.speed = vel;
 		this.pos.add(this.speed);
 
-
-		//this.energy -= deltaTime*0.5;
+		// energy cost of side move
+		this.energy -= deltaTime*0.05;
 	}
 
 	update(position) {

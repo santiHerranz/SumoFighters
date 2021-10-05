@@ -61,7 +61,7 @@ class Strategy {
 			// Strategy.triangle300Drive,
 			Strategy.attackDrive,
 			Strategy.defendDrive,
-			// Strategy.evadeDrive
+			Strategy.evadeDrive
 		]; //
 
 
@@ -221,48 +221,6 @@ class Strategy {
 		};
 	}
 
-	static evadeDrive(player, strategy = {
-			name: "EVADE",
-			deltaTurn: 5
-		}) {
-
-		// strategic data to be stored in memory
-		let memory = {
-			changeCounts: 0
-		};
-
-		// read memory data from player
-		if (player.memory != null)
-			memory = JSON.parse(JSON.stringify(player.memory));
-
-		let d = {
-			speed: 0,
-			turn: 0
-		};
-
-		let face = faceDrive(player);
-
-		d.turn += face.turn;
-		d.speed += -10;
-
-		memory.changeCounts++;
-		if (memory.changeCounts > 50) {
-			d.turn = 1.5;
-			d.speed = -30;
-		}
-		if (player.energy < 75) {
-			player.strategyFunc = attackDrive;
-		}
-
-		player.memory = memory;
-
-		player.name = strategy.name;
-
-		return {
-			speed: d.speed,
-			turn: d.turn
-		};
-	}
 
 	static remoteControlDrive(player, strategy = {
 			name: "REMOTE"
@@ -445,44 +403,31 @@ class Strategy {
 			deltaSpeed: 10 + (Math.random() - 0.5),
 			deltaTurn: .8
 		}) {
-
-		let autoSpeed = 0;
-		let autoTurn = 0;
+		let autoSpeed = 0, autoTurn = 0;
 
 		let playerLayer = player.visionLayer[VISION_LAYER.PLAYER];
-
 		for (let ray of playerLayer) {
 			if (ray.point != null) {
 				if (ray.distance < dojo.radius * 2) {
-
 					autoSpeed += strategy.deltaSpeed;
-
 					let mitad = playerLayer.length / 2;
 					let giro = Math.abs(mitad - ray.index);
-
 					if (ray.index < mitad)
 						autoTurn += -Math.PI / 180 * giro * strategy.deltaTurn;
-
 					if (ray.index > mitad)
 						autoTurn += Math.PI / 180 * giro * strategy.deltaTurn;
-
 				}
 			}
 		}
 
 		let maxSpeed = 100;
-		if (autoSpeed > maxSpeed)
-			autoSpeed = maxSpeed;
+		if (autoSpeed > maxSpeed) autoSpeed = maxSpeed;
 
-		if (autoSpeed == 0 && autoTurn == 0)
+		if (autoSpeed == 0 && autoTurn == 0) 
 			autoTurn = Math.PI / 180 * 20;
 
 		player.name = strategy.name;
-
-		return {
-			speed: autoSpeed,
-			turn: autoTurn
-		};
+		return { speed: autoSpeed, turn: autoTurn };
 	}
 
 	static defendDrive(player, strategy = {
@@ -490,42 +435,71 @@ class Strategy {
 			deltaSpeed: 2 + (Math.random() - 0.5),
 			deltaTurn: .4
 		}) {
-
-		let autoSpeed = 0;
-		let autoTurn = 0;
+		let autoSpeed = 0, autoTurn = 0;
 
 		let playerLayer = player.visionLayer[VISION_LAYER.PLAYER];
-
 		for (let ray of playerLayer) {
 			if (ray.point != null) {
 				if (ray.distance < dojo.radius * 2) {
-
 					autoSpeed += strategy.deltaSpeed;
-
 					let mitad = playerLayer.length / 2;
 					let giro = Math.abs(mitad - ray.index);
-
 					if (ray.index < mitad)
 						autoTurn += -Math.PI / 180 * giro * strategy.deltaTurn;
-
 					if (ray.index > mitad)
 						autoTurn += Math.PI / 180 * giro * strategy.deltaTurn;
-
 					if (ray.index > mitad-2 && ray.index < mitad+2 && player.inContact)
 						autoSpeed += 30;
 				}
 			}
 		}
-
-
 		if (autoSpeed == 0 && autoTurn == 0)
 			autoTurn = Math.PI / 180 * 50;
 
 		player.name = strategy.name;
-
-		return {
-			speed: autoSpeed,
-			turn: autoTurn
-		};
+		return { speed: autoSpeed, turn: autoTurn };
 	}
+
+
+
+	static evadeDrive(player, strategy = {
+		name: "EVADE",
+		deltaTurn: 5
+	}) {
+
+	// strategic data to be stored in memory
+	let memory = {
+		changeCounts: 0
+	};
+
+	// read memory data from player
+	if (player.memory != null)
+		memory = JSON.parse(JSON.stringify(player.memory));
+
+	let d = {
+		speed: 0,
+		turn: 0
+	};
+
+	let face = Strategy.faceDrive(player);
+
+	d.turn += face.turn;
+	d.speed += -10;
+
+	memory.changeCounts++;
+	if (memory.changeCounts > 50) {
+		d.turn = 1.5;
+		d.speed = -30;
+	}
+	if (player.energy < 75) {
+		player.strategyFunc = Strategy.attackDrive;
+	}
+
+	// Save data in memory
+	player.memory = memory;
+
+	player.name = strategy.name;
+
+	return { speed: d.speed, turn: d.turn };
+}	
 }
