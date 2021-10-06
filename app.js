@@ -16,7 +16,11 @@ const GAME_TIME_SECONDS = 60;
 
 var menuGame, modalMenuGame, modalEl, scoreEl, strategyAFuncText, strategyBFuncText;
 
-const GAME_MODE = {NONE:0, PLAYERvsCPU: 1, CPUvsCPU: 2}
+const GAME_MODE = {
+	NONE: 0,
+	PLAYERvsCPU: 1,
+	CPUvsCPU: 2
+}
 var gameMode = GAME_MODE.NONE;
 
 var dojo;
@@ -36,6 +40,7 @@ const GAME_STATUS = {
 	GAME_INIT: 0,
 	GAME_READY: 1,
 	GAME_MENU: 5,
+	GAME_PAUSED: 8,
 	GAME_RUNNING: 10,
 	GAME_GOAL: 20,
 	GAME_TIMEOVER: 90,
@@ -65,8 +70,8 @@ function prepare() {
 	modalEl = document.getElementById('modalEl');
 	scoreEl = document.getElementById('scoreEl');
 	scoreBigEl = document.getElementById('scoreBigEl');
-	strategyAFuncText =  document.getElementById('strategyAFuncText');
-	strategyBFuncText =  document.getElementById('strategyBFuncText');
+	strategyAFuncText = document.getElementById('strategyAFuncText');
+	strategyBFuncText = document.getElementById('strategyBFuncText');
 	// canvas
 	canvas = document.getElementById('canvas');
 	width = window.innerWidth;
@@ -93,7 +98,7 @@ function prepare() {
 
 	// player A
 	player_A = new Player(width / 2 - 100, height / 2, playerSize);
-	player_A.strategyFunc = Strategy.randomDrive; 
+	player_A.strategyFunc = Strategy.randomDrive;
 	player_A.color = "rgb(0,0,255,0.99)";
 	player_A.bgcolor = "rgb(0,0,255,0.8)";
 	player_A.walls.forEach(wall => {
@@ -128,8 +133,20 @@ function prepare() {
 	// set game time
 	gameTime = 60 * GAME_TIME_SECONDS; // 60 FPS * 60 seg = 1 minute
 	gameStatus = GAME_STATUS.GAME_MENU;
+}
+
+function gamePauseHandler() {
+	if (gameStatus != GAME_STATUS.GAME_PAUSED) {
+		gamePauseBtn.innerHTML = "Continue";
+		gameStatus = GAME_STATUS.GAME_PAUSED;
+	}
+	else {
+		gameStatus = GAME_STATUS.GAME_RUNNING;
+		gamePauseBtn.innerHTML = "Pause";
+	}
 
 }
+
 function gameMenuBack() {
 	gameMode = GAME_MODE.NONE;
 	modalEl.style.display = 'none';
@@ -194,15 +211,12 @@ function loop() {
 	draw();
 }
 
-
-
 function step() {
 
-	if (gameMode == GAME_MODE.NONE) return;
+	if (gameMode == GAME_MODE.NONE)
+		return;
 
-	if (gameStatus == GAME_STATUS.GAME_MENU) {
-
-	}
+	if (gameStatus == GAME_STATUS.GAME_MENU) {}
 
 	if (gameStatus == GAME_STATUS.GAME_GOAL) {
 
@@ -213,23 +227,19 @@ function step() {
 
 	if (gameStatus == GAME_STATUS.GAME_RUNNING) {
 
-
 		players.forEach(player => {
 			player.scan(walls, BOUNDARY_TYPE.PLAYER, player.visionLayer[VISION_LAYER.PLAYER])
 			player.scan(walls, BOUNDARY_TYPE.DOJO, player.visionLayer[VISION_LAYER.DOJO])
 
 		});
 
-
-		strategyAFuncText.innerHTML = JSON.stringify(player_A.strategyFunc.toString().replace(/\n\n/g, "\n").replace(/\n/g, "&#13;").replace(/\r/g, "").replace(/\t/g, "  ") ); // .split(/\/\*\n|\n\*\//g).slice(1,-1).join()
-		strategyBFuncText.innerHTML = JSON.stringify(player_B.strategyFunc.toString().replace(/\n\n/g, "\n").replace(/\n/g, "&#13;").replace(/\r/g, "").replace(/\t/g, "  ") ); // .split(/\/\*\n|\n\*\//g).slice(1,-1).join()
+		strategyAFuncText.innerHTML = JSON.stringify(player_A.strategyFunc.toString().replace(/\n\n/g, "\n").replace(/\n/g, "&#13;").replace(/\r/g, "").replace(/\t/g, "  ")); // .split(/\/\*\n|\n\*\//g).slice(1,-1).join()
+		strategyBFuncText.innerHTML = JSON.stringify(player_B.strategyFunc.toString().replace(/\n\n/g, "\n").replace(/\n/g, "&#13;").replace(/\r/g, "").replace(/\t/g, "  ")); // .split(/\/\*\n|\n\*\//g).slice(1,-1).join()
 
 		players.forEach(player => {
 			//drive(player, avoidOutRingBackwarsDrive);
 			drive(player, player.strategyFunc);
 		});
-
-
 
 		// Avoid same boring strategy
 		if (players[0].name == "DEFEND" && players[1].name == "DEFEND")
@@ -290,7 +300,7 @@ function collideAndPush(one, other) {
 	if (dist < minDist) {
 		one.inContact = true;
 		other.inContact = true;
-		
+
 		var tx = one.pos.x + dx / dist * minDist,
 		ty = one.pos.y + dy / dist * minDist,
 		ax = (tx - other.pos.x),
@@ -382,9 +392,11 @@ gameBtn.addEventListener('click', () => {
 });
 
 menuBackBtn.addEventListener('click', () => {
+	gameMenuBack();
+});
 
- 	gameMenuBack();
-	
+gamePauseBtn.addEventListener('click', () => {
+	gamePauseHandler();
 });
 
 btnCPUvsCPU.addEventListener('click', () => {
@@ -393,8 +405,6 @@ btnCPUvsCPU.addEventListener('click', () => {
 btnPlayervsCPU.addEventListener('click', () => {
 	gameMenuStart(GAME_MODE.PLAYERvsCPU);
 });
-
-
 
 addEventListener('keydown', onkeydown);
 addEventListener('keyup', onkeyup);
