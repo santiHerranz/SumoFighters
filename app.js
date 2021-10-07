@@ -80,6 +80,10 @@ function prepare() {
 	canvas.height = height;
 	ctx = canvas.getContext('2d');
 
+	// Empty 
+	players = [];
+	walls = [];
+
 	let offset = -width;
 	walls.push(new Boundary(0 + offset, offset, width - offset, offset, BOUNDARY_TYPE.WALL)); // top
 	walls.push(new Boundary(0 + offset, height - offset, width - offset, height - offset, BOUNDARY_TYPE.WALL)); // bottom
@@ -200,8 +204,8 @@ function init() {
 	}
 
 	modalEl.style.display = 'none';
-	yukonA.style.display = 'none';
-	yukonB.style.display = 'none';
+	yukoScoreA.style.display = 'none';
+	yukoScoreB.style.display = 'none';
 
 }
 
@@ -363,10 +367,10 @@ function scoreGoal(yuko) {
 	scoreBBigEl.innerHTML = score_B;
 
 	if (yuko == "A") {
-		yukonA.style.display = 'flex';
+		yukoScoreA.style.display = 'flex';
 		playSound("YUKO-A");
 	} else if (yuko == "B") {
-		yukonB.style.display = 'flex';
+		yukoScoreB.style.display = 'flex';
 		playSound("YUKO-B");
 	} else {
 		playSound("TIE");

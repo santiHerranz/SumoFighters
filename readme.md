@@ -27,8 +27,8 @@ Work in progress...
 
 ## Energy
 - Movements cost energy
-- Forward and backward cost is proportioanl to distance
-- Rotation cost is porportioal to time
+- Forward and backward cost is proportional to distance
+- Rotation cost is porportional to time
 
 ## The Battle
 
@@ -56,7 +56,7 @@ Work in progress...
 
 
 ## Dojo (Dohyo)
-- Right side is color red and the left side is color blue.
+- Left side is color blue and the right side is color red.
 - Starting line (Shikiri-sen)\
 Located 10 cm right and left from the center of the Dojo
 - White line delimits the external border of the Dojo (Tawara)\

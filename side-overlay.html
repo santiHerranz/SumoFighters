@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="https://unpkg.com/tailwindcss@^1.0/dist/tailwind.min.css" rel="stylesheet">
+    <link href="side-panels.css" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Lato', sans-serif;
+        }
+
+    </style>
+</head>
+
+<body>
+
+    <div id="myLeftNav" class="overlay-left">
+        <a href="javascript:void(0)" class="closebtn" onclick="closeLeftNav()">&times;</a>
+        <div class="overlay-left-content">
+            <a href="#">LEFT</a>
+        </div>
+    </div>
+
+    <div id="myRightNav" class="overlay-right">
+        <a href="javascript:void(0)" class="closebtn" onclick="closeRightNav()">&times;</a>
+        <div class="overlay-right-content">
+            <a href="#">RIGHT</a>
+        </div>
+    </div>
+
+    <div style="width: 100%">
+        <span style="font-size:30px;cursor:pointer" onclick="openLeftNav()">&#9776; Left</span>
+        <span style="font-size:30px;cursor:pointer;float: right;" onclick="openRightNav()"> Right &#9776;</span>
+    </div>
+
+    <div style="display:flex;
+    align-items:center;
+    justify-content:center;">
+    <button class="button bg-green-600 text-white w-20 h-10 rounded-md p-0">Pause</button>
+
+    </div>
+
+
+    <script>
+        function openLeftNav() {
+            document.getElementById("myLeftNav").style.width = "20%";
+        }
+
+        function closeLeftNav() {
+            document.getElementById("myLeftNav").style.width = "0%";
+        }
+
+        function openRightNav() {
+            document.getElementById("myRightNav").style.width = "20%";
+            document.getElementById("myRightNav").style.right = "0px";
+        }
+
+        function closeRightNav() {
+            document.getElementById("myRightNav").style.width = "0%";
+        }
+    </script>
+
+</body>
+
+</html>

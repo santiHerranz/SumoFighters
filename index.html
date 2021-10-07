@@ -5,6 +5,8 @@
   <title>ROBOT SUMO BATTLE SIMULATOR</title>
   <meta charset="UTF-8" />
   <link href="https://unpkg.com/tailwindcss@^1.0/dist/tailwind.min.css" rel="stylesheet">
+  <link href="side-panels.css" rel="stylesheet">
+  <link href="gh-fork-ribbon.css" rel="stylesheet">
 
   <link rel="canonical" href="https://santiherranz.github.io/SumoFighters/" />
 
@@ -25,11 +27,12 @@
   <meta name="author" content="santiHerranz">
   <meta name="robots" content="index, follow">
 
-  <link rel="stylesheet" href="gh-fork-ribbon.css">
   <style>
     body {
       margin: 0;
       overflow: hidden;
+      background: black;
+
     }
   </style>
 </head>
@@ -37,46 +40,76 @@
 <body>
 
 
-  <div class="fixed w-full">
-    <div class="grid grid-cols-1 justify-items-center items-center">
+
+
+
+
+  <!-- <div class="fixed w-full text-white" style="display:flex; align-items:center; justify-content:center;">
+   
+  </div> -->
+
+  <div class="fixed w-full bg-gray-600 p-2 text-white " style="display:flex; align-items:center; justify-content:center; ">
+    
+    <div class="absolute left-0 top-0">
+
+      <span style="font-size:24px;cursor:pointer;" onclick="openLeftNav()">&#9776; <span
+          class="bg-blue-600 p-2 rounded-md">Robot A</span></span>
     </div>
-  </div>
 
+    <div class="px-4">Score: <span id="scoreEl"></span> </div>
 
-  <div class="fixed w-full text-white grid justify-items-start">
-    <div class="p-8">Score: <span id="scoreEl"></span> </div>
-    <div>
-      <h2><span class="bg-blue-600 p-2 rounded-lg">Robot strategy</span></h2>
-      <textarea id="strategyAFuncText" rows="50" cols="60"
-        class="text-grey-darkest flex-1 p-2 m-1 text-xs bg-transparent" style="float:left; width: 100%;"></textarea>
+    <div class="px-4">
+      <button class="button bg-green-600 w-20 h-10 rounded-md p-0" id="gamePauseBtn">Pause</button>
     </div>
-  </div>
-
-  <!--  -->
-
-  <div class="fixed w-full text-white grid justify-items-end">
-    <div class="p-4 px-40"> 
-      <button class="button bg-green-600 text-white w-20 h-10 rounded-md p-0 "
-        id="gamePauseBtn">Pause</button>
-    </div>
-    <div class="p-4 px-40">
+    <div class="px-4">
       Time speed:<input id=slider_masterTimeSpeed title='time' type=range min=1 max=50 value=12 style=width:200px
         oninput=UpdateSettings();>
     </div>
-    <div class="p-2 px-40">
-      <input type=checkbox id=input_showrays onchange="UpdateSettings();">Show Rays
+    <div class="px-4">
+      <input type=checkbox id=input_showrays onchange="UpdateSettings();"> <label for="input_showrays"> Show Rays
+      </label>
     </div>
 
-    <div>
-      <h2><span class="bg-red-600 p-2 rounded-lg">Robot strategy</span></h2>
-      <textarea id="strategyBFuncText" rows="50" cols="60"
-        class="text-grey-darkest flex-1 p-2 m-1 text-xs bg-transparent" style="float:right; width: 100%;"></textarea>
+    <div class="absolute top-0 right-0">
+      <span style="font-size:24px;cursor:pointer;" onclick="openRightNav()"><span
+          class="bg-red-600 p-2 rounded-lg">Robot B</span> &#9776;</span>
     </div>
-
   </div>
 
 
-  <!--Overlay Effect-->
+  <div id="myLeftNav" class="overlay-left">
+    <a href="javascript:void(0)" class="closebtn" onclick="closeLeftNav()">&times;</a>
+    <div class="overlay-left-content">
+      <a href="#">ROBOT A</a>
+      <div>
+        <h2><span class="bg-blue-600 p-2 rounded-lg">Strategy</span></h2>
+        <textarea id="strategyAFuncText" rows="50" cols="60" class="text-grey-darkest flex-1 p-2 m-1 text-xs"
+          style="float:left; width: 100%;"></textarea>
+      </div>
+
+
+    </div>
+  </div>
+
+  <div id="myRightNav" class="overlay-right">
+    <a href="javascript:void(0)" class="closebtn" onclick="closeRightNav()">&times;</a>
+    <div class="overlay-right-content">
+      <a href="#">ROBOT B</a>
+
+      <div>
+        <h2><span class="bg-red-600 p-2 rounded-lg">Strategy</span></h2>
+        <textarea id="strategyBFuncText" rows="50" cols="60" class="text-grey-darkest flex-1 p-2 m-1 text-xs"
+          style="float:right; width: 100%;"></textarea>
+      </div>
+    </div>
+  </div>
+
+
+
+
+
+
+
   <div class="fixed inset-0 bg-gray-900 bg-opacity-50 overflow-y-auto h-full w-full" id="my-modal"></div>
 
   <div class="fixed inset-0 flex items-center justify-center rounded-lg" id="menuGame">
@@ -105,7 +138,7 @@
 
         <span class="relative inline-flex rounded-md shadow-sm">
           <span class="bg-blue-600 p-4 rounded-lg" id="scoreABigEl"></span>
-          <span id="yukonA" class="flex absolute  h-5 w-5 top-0 right-0 -mt-1 -mr-1">
+          <span id="yukoScoreA" class="flex absolute  h-5 w-5 top-0 right-0 -mt-1 -mr-1">
             <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-orange-400 opacity-75"></span>
             <span class="relative inline-flex rounded-full h-5 w-5 bg-yellow-500"></span>
           </span>
@@ -115,7 +148,7 @@
         <span class="relative inline-flex rounded-md shadow-sm">
 
           <span class="bg-red-600 p-4 rounded-lg" id="scoreBBigEl"></span>
-          <span id="yukonB" class="flex absolute  h-5 w-5 top-0 right-0 -mt-1 -mr-1">
+          <span id="yukoScoreB" class="flex absolute  h-5 w-5 top-0 right-0 -mt-1 -mr-1">
             <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-orange-400 opacity-75"></span>
             <span class="relative inline-flex rounded-full h-5 w-5 bg-yellow-500"></span>
           </span>
@@ -130,12 +163,19 @@
           <button class="button bg-blue-600 text-white w-full py-3 rounded-full" id="gameBtn">Start game</button>
         </div>
         <div>
-          <button class="button bg-green-600 text-white w-full py-3 rounded-full" id="menuBackBtn">Back to menu</button>
+          <button class="button bg-green-600 text-white w-full py-3 rounded-full" id="menuBackBtn">Back to
+            menu</button>
         </div>
       </div>
 
     </div>
   </div>
+
+
+
+
+
+
 
 
 
@@ -146,6 +186,26 @@
 
   <a class="github-fork-ribbon left-bottom fixed" href="https://github.com/santiHerranz/SumoFighters"
     data-ribbon="Fork me on GitHub" title="Fork me on GitHub">Fork me on GitHub</a>
+
+
+  <script>
+    function openLeftNav() {
+      document.getElementById("myLeftNav").style.width = "20%";
+    }
+
+    function closeLeftNav() {
+      document.getElementById("myLeftNav").style.width = "0%";
+    }
+
+    function openRightNav() {
+      document.getElementById("myRightNav").style.width = "20%";
+      document.getElementById("myRightNav").style.right = "0px";
+    }
+
+    function closeRightNav() {
+      document.getElementById("myRightNav").style.width = "0%";
+    }
+  </script>
 
   <script>
     function UpdateSettings() {
