@@ -69,7 +69,15 @@
       <input type=checkbox id=input_showrays onchange="UpdateSettings();"> <label for="input_showrays"> Show Rays
       </label>
     </div>
-
+    <div class="px-4">
+      <input type=checkbox id=input_playsounds checked onchange="UpdateSettings();"> <label for="input_playsounds"> Play sounds
+      </label>
+    </div>
+    <div class="px-4">
+      <input type=checkbox id=input_playcollision_sounds checked onchange="UpdateSettings();"> <label for="input_playcollision_sounds"> Play collision sound
+      </label>
+    </div>
+    
     <div class="absolute top-0 right-0">
       <span style="font-size:24px;cursor:pointer;" onclick="openRightNav()"><span
           class="bg-red-600 p-2 rounded-lg">Robot B</span> &#9776;</span>
@@ -213,6 +221,9 @@
       deltaTime = v / 100;
 
       showRays = input_showrays.checked;
+      playSounds = input_playsounds.checked;
+      input_playcollision_sounds.disabled = !input_playsounds.checked;
+      playCollisionSound = input_playcollision_sounds.checked && !input_playcollision_sounds.disabled;
 
     }
   </script>
@@ -221,8 +232,12 @@
   <script src="ray.js"></script>
   <script src="boundary.js"></script>
   <script src="inputs.js"></script>
+  <script src="particle.js"></script>
   <script src="dojo.js"></script>
   <script src="strategy.js"></script>
+  <script src="strategy-attack.js"></script>
+  <script src="strategy-defend.js"></script>
+  <script src="strategy-evade.js"></script>
   <script src="player.js"></script>
   <script src="app.js"></script>
 

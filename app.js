@@ -6,6 +6,8 @@ height;
 
 var deltaTime = 0.12;
 var showRays = false;
+var playSounds = true;
+var playCollisionSound = true;
 var showBoundaries = false;
 var showCameraView = false;
 
@@ -15,6 +17,8 @@ let score_B = 0;
 const GAME_TIME_SECONDS = 60;
 
 var menuGame, modalMenuGame, modalEl, scoreEl, strategyAFuncText, strategyBFuncText;
+
+var hitSoundTime = 0;
 
 const GAME_MODE = {
 	NONE: 0,
@@ -28,6 +32,9 @@ var players = [];
 var player_A;
 var player_B;
 var player_Dummy;
+
+// Some juice
+var particles = [];
 
 const IMPULSO_X = 3;
 const IMPULSO_Y = 3;
@@ -80,7 +87,7 @@ function prepare() {
 	canvas.height = height;
 	ctx = canvas.getContext('2d');
 
-	// Empty 
+	// Empty
 	players = [];
 	walls = [];
 
@@ -143,8 +150,7 @@ function gamePauseHandler() {
 	if (gameStatus != GAME_STATUS.GAME_PAUSED) {
 		gamePauseBtn.innerHTML = "Continue";
 		gameStatus = GAME_STATUS.GAME_PAUSED;
-	}
-	else {
+	} else {
 		gameStatus = GAME_STATUS.GAME_RUNNING;
 		gamePauseBtn.innerHTML = "Pause";
 	}
@@ -216,6 +222,10 @@ function loop() {
 }
 
 function step() {
+
+	particles = particles.filter(particle => {
+		return particle.health > 0
+	});
 
 	if (gameMode == GAME_MODE.NONE)
 		return;
@@ -290,6 +300,10 @@ function step() {
 			}
 		}
 
+		particles.forEach(b => {
+			b.step();
+		});
+
 	}
 
 }
@@ -304,6 +318,30 @@ function collideAndPush(one, other) {
 	if (dist < minDist) {
 		one.inContact = true;
 		other.inContact = true;
+
+
+		// Agressive collission
+		// update hit sound
+		let speed = one.speed.mag()/deltaTime + other.speed.mag()/deltaTime;
+		if (speed > 10) {
+
+
+			hitSoundTime += speed;
+			if (hitSoundTime > 50/deltaTime) {
+
+			// point of collission
+			let point = one.pos.copy().add(Vector.fromAngle(other.pos.copy().sub(one.pos).heading(), other.radius));
+			for (let index = 0; index < 4; index++) {
+				particles.push(new Particle(point.x, point.y));
+						}
+
+				hitSoundTime = 0;
+				playSound("HIT");
+
+
+			}
+		} else
+			hitSoundTime = .5;
 
 		var tx = one.pos.x + dx / dist * minDist,
 		ty = one.pos.y + dy / dist * minDist,
@@ -344,6 +382,8 @@ function draw() {
 	players.forEach(player => {
 		player.draw();
 	});
+
+	particles.forEach(particle => particle.draw());
 
 	// CAMERA VIEW
 	if (showCameraView) {
@@ -449,6 +489,8 @@ loop();
 
 function playSound(sound, p = 0) {
 
+	if (!playSounds) return;
+
 	switch (sound) {
 
 	case "YUKO-A":
@@ -461,6 +503,25 @@ function playSound(sound, p = 0) {
 	case "TIE":
 		zzfx(...[1.01, 0, 187, , , .23, 2, 3.6, 2.3, , 200, .09, , , , , , .9, .03, .03]); // Hit 78
 		//zzfx(...[2.29, , 1460, , .08, .13, 1, .52, .2, , , , .06, , -2, -0.2, .01, .62, .07, .1]); // Pickup 55 - Mutation 6
+		break;
+
+	case "HIT":
+		if (!playCollisionSound) return;
+		// zzfx([.5,,1e3,.02,,.2,1,3,.1,,,,,1,-30,.5,,.5]);
+		//zzfx([,,90,,.01,.03,4,,,,,,,9,50,.2,,.2,.01]);
+		//zzfx(...[.3,.1,70,,,.01,4,,,,-9,.1,,,,,,.5]			);
+
+		//zzfx(...[.5,,1e3,.02,,.2,1,3,.1,,,,,1,-30,.5,,.5]);
+		//zzfx(...[1.8,,461,,,.29,4,.1,.6,,,,,.3,.1,.5,.02,.52,.03]); // Hit 147
+
+		//zzfx(...[,0,391.9954]); // Sound Default
+		//zzfx(...[2.79,,181,,,0,2,.88,,,495,,,,,,.18,.1]); // Random 6
+		//zzfx(...[2,50,181,,,0,2,.88,,,495,,,,,,.18,.1]); // Random 6
+		//zzfx(...[2,1,181,.01,,0,,.88,,,495,,,,,,.18,.1]); // Random 6
+		//zzfx(...[2,.5,181,.01,,0,,.88,,,495,,,,,,.18,.1]); // Random 6
+		//zzfx(...[2,-0.05,181,.01,,0,,.88,,,495,,,,,,.18,.1,.01]); // Random 6
+		//zzfx(...[2, -0.05, 65.40639, .01, , 0, , 0, , , , , , , , , .18, 0, .01]); // Random 6
+		zzfx(...[,-0.05,65.40639,.01,,0,,0,,,,,,,,,.18,0,.01]); // Random 6
 		break;
 
 	default:
