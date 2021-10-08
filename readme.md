@@ -1,10 +1,16 @@
+<p align="center">
+  <img src="./screenshot.png" width="800px">
+  <br>
+<a href="https://santiherranz.github.io/SumoFighters/" target="_blank"><b>Play simulator</b></a>
+ </p>
+  <br>
+
 # ROBOT SUMO BATTLE
 
 Javascript Simulator for testing robot strategies in sumo battle
 
 Work in progress...
 
-<a href="https://santiherranz.github.io/SumoFighters/" target="_blank"><b>Play simulator</b></a>
 
 ## Manual Movement (Only in remote strategy)
 - Arrow KEYS or WASD
