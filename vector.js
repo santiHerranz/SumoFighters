@@ -82,30 +82,14 @@ class Vector {
       return this;
     };
 
-    mult = function mult(x, y, z) {
-      if (x instanceof Vector) {
-        // new p5.Vector will check that values are valid upon construction but it's possible
-        // that someone could change the value of a component after creation, which is why we still
-        // perform this check
-        if (
-          Number.isFinite(x.x) &&
-          Number.isFinite(x.y) &&
-          Number.isFinite(x.z) &&
-          typeof x.x === 'number' &&
-          typeof x.y === 'number' &&
-          typeof x.z === 'number'
-        ) {
-          this.x *= x.x;
-          this.y *= x.y;
-          this.z *= x.z;
-        } else {
-          console.warn(
-            'p5.Vector.prototype.mult:',
-            'x contains components that are either undefined or not finite numbers'
-          );
-        }
-        return this;
-      }
+    scale = function(s)              { return new Vector(this.x * s, this.y * s); }
+
+    lengthSquared()       { return this.x**2 + this.y**2; }
+    length()              { return this.lengthSquared()**.5; }
+    clampLength(length=1) { const l = this.length(); return l > length ? this.scale(length/l) : this; }
+
+    mult = function mult(v) {
+      return new Vector(this.x * v.x, this.y * v.y);
     }
 
     setMag = function setMag(n) {

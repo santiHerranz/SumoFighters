@@ -13,6 +13,10 @@ class Player {
 		this.pos = createVector(x, y);
 		this.lastPos = this.pos.copy();
 
+		// Limits
+		this.maxTurn = Math.PI/180*120; 
+		this.maxSpeed = 100;
+
 		this.speed = createVector(0, 0); // current speed
 		this.distance = 0;
 
@@ -184,16 +188,17 @@ class Player {
 		ctx.stroke();
 
 
-
 		// Heading line
+		let maxL = this.radius;
 		ctx.save();
 		ctx.lineWidth = 4;
 		ctx.strokeStyle = "rgb(255,255,255,0.9)";
 		ctx.beginPath();
 		ctx.moveTo(this.pos.x, this.pos.y);
-		ctx.lineTo(this.pos.x + this.radius * Math.cos(this.heading + Math.PI + radians(180)), this.pos.y + this.radius * Math.sin(this.heading + Math.PI + radians(180)));
+		ctx.lineTo(this.pos.x + maxL * Math.cos(this.heading + Math.PI + radians(180)), this.pos.y + maxL * Math.sin(this.heading + Math.PI + radians(180)));
+		ctx.closePath();
 		ctx.stroke();
-		ctx.restore();
+
 
 		// Energy indicator
 		if (this.showEnergyIndicator) {

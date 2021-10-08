@@ -108,8 +108,6 @@ class Game {
         this.trails = [];
         this.particles = [];
 
-
-
         // Initial position
         this.player_A.pos.x = width * 5 / 12;
         this.player_A.pos.y = height / 2;
@@ -139,36 +137,33 @@ class Game {
 
     step() {
 
-                // remove death stuff
-                this.particles = this.particles.filter(particle => {
-                    return particle.health > 0
-                });
-                this.trails = this.trails.filter(trail => {
-                    return trail.health > 0
-                });
-        
-
+        // remove death stuff
+        this.particles = this.particles.filter(particle => {
+            return particle.health > 0
+        });
+        this.trails = this.trails.filter(trail => {
+            return trail.health > 0
+        });
 
         if (this.status == GAME_STATUS.GAME_RUNNING) {
-
 
             this.players.forEach(player => {
                 player.scan(this.walls, BOUNDARY_TYPE.PLAYER, player.visionLayer[VISION_LAYER.PLAYER])
                 player.scan(this.walls, BOUNDARY_TYPE.DOJO, player.visionLayer[VISION_LAYER.DOJO])
-    
+
             });
-    
+
             this.players.forEach(player => {
                 //drive(player, avoidOutRingBackwarsDrive);
                 this.drive(player, player.strategyFunc);
             });
-    
+
             // Avoid same boring strategy
             if (this.players[0].name == "DEFEND" && this.players[1].name == "DEFEND")
                 init();
             if (this.players[0].name == "EVADE" && this.players[1].name == "EVADE")
                 init();
-    
+
             // contact
             this.players.forEach(player => {
                 player.inContact = false;
@@ -183,10 +178,10 @@ class Game {
                     }
                 }
             }
-    
+
             this.players.forEach(player => {
                 player.step();
-            });            
+            });
 
         }
 
@@ -201,13 +196,45 @@ class Game {
 
         this.walls.forEach(wall => wall.show());
 
-        this.trails.forEach(trail => trail.draw());
+        this.drawTrails();
 
         this.players.forEach(player => {
             player.draw();
         });
 
         this.particles.forEach(particle => particle.draw());
+
+    }
+
+    drawTrails() {
+        let blueTrails = this.trails.filter(t => {
+            return t.color == this.player_A.color
+        });
+        let redTrails = this.trails.filter(t => {
+            return t.color == this.player_B.color
+        });
+
+        let arrTrails = [blueTrails, redTrails];
+
+        for (let trail of arrTrails) {
+            if (showTrails && trail.length > 0) {
+
+                ctx.save();
+                ctx.beginPath();
+                ctx.lineWidth = trail[0].width;
+                ctx.lineCap = 'round';
+
+                ctx.moveTo(trail[0].x, trail[0].y);
+                trail.forEach(trail => {
+                    ctx.lineTo(trail.x2, trail.y2);
+                });
+
+                ctx.strokeStyle = trail[0].color.replace(/[^,]+(?=\))/, '0.3');
+                ctx.stroke();
+
+                ctx.restore();
+            }
+        }
 
     }
 
@@ -221,68 +248,68 @@ class Game {
         this.trails.push(new Trail(pos.x, pos.y, lastPos.x, lastPos.y, emitter.color));
     }
 
-
-
     checkDojoLimits(player, dojo) {
         return !this.dojo.collide(player);
     }
-    
-    
 
-    
-collideAndPush(one, other) {
+    collideAndPush(one, other) {
 
-	var dx = other.pos.x - one.pos.x,
-	dy = other.pos.y - one.pos.y,
-	dist = Math.sqrt(dx * dx + dy * dy),
-	minDist = one.radius + other.radius;
+        var dx = other.pos.x - one.pos.x,
+        dy = other.pos.y - one.pos.y,
+        dist = Math.sqrt(dx * dx + dy * dy),
+        minDist = one.radius + other.radius;
 
-	if (dist < minDist) {
-		one.inContact = true;
-		other.inContact = true;
+        if (dist < minDist) {
+            one.inContact = true;
+            other.inContact = true;
 
-		// Agressive collission
-		// update hit sound
-		let speed = one.speed.mag() / deltaTime + other.speed.mag() / deltaTime;
-		if (speed > 10) {
+            // Agressive collission
+            // update hit sound
+            let speed = one.speed.mag() / deltaTime + other.speed.mag() / deltaTime;
+            if (speed > 10) {
 
-			hitSoundTime += speed;
-			if (hitSoundTime > 50 / deltaTime) {
+                hitSoundTime += speed;
+                if (hitSoundTime > 50 / deltaTime) {
 
-				// add some ssparks at point of collission
-				let point = one.pos.copy().add(Vector.fromAngle(other.pos.copy().sub(one.pos).heading(), other.radius));
-				game.sparkling(point);
+                    // add some ssparks at point of collission
+                    let point = one.pos.copy().add(Vector.fromAngle(other.pos.copy().sub(one.pos).heading(), other.radius));
+                    game.sparkling(point);
 
-				hitSoundTime = 0;
-				playSound("HIT");
+                    hitSoundTime = 0;
+                    playSound("HIT");
 
-			}
-		} else
-			hitSoundTime = .5;
+                }
+            } else
+                hitSoundTime = .5;
 
-		var tx = one.pos.x + dx / dist * minDist,
-		ty = one.pos.y + dy / dist * minDist,
-		ax = (tx - other.pos.x),
-		ay = (ty - other.pos.y);
+            var tx = one.pos.x + dx / dist * minDist,
+            ty = one.pos.y + dy / dist * minDist,
+            ax = (tx - other.pos.x),
+            ay = (ty - other.pos.y);
 
-		const K = 0.9;
+            const K = 0.9;
 
-		one.pos.x -= ax * K;
-		one.pos.y -= ay * K;
-		other.pos.x += ax * K;
-		other.pos.y += ay * K;
+            one.pos.x -= ax * K;
+            one.pos.y -= ay * K;
+            other.pos.x += ax * K;
+            other.pos.y += ay * K;
 
-	}
+        }
 
-}
+    }
 
-drive(player, func) {
+    drive(player, func) {
 
-	let d = func(player);
+        let d = func(player);
 
-	// Apply
-	player.move(d.speed);
-	player.rotate(d.turn);
-}
+        if (d.speed > player.maxSpeed)
+            d.speed = player.maxSpeed;
+        if (d.turn > player.maxTurn)
+            d.turn = player.maxTurn;
+
+        // Apply
+        player.move(d.speed);
+        player.rotate(d.turn);
+    }
 
 }

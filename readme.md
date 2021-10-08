@@ -27,9 +27,12 @@ Work in progress...
 - Remote control
 - Face opponent
 - Keep inside
+- Seek
+- Flee
+- Pursue
+- Evade
 - Attack: Try to align to center of opponent and push
 - Defend: Try to align to center of opponent and push when contact
-- Evade
 
 ## Energy
 - Movements cost energy
