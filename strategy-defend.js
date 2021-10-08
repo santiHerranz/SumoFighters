@@ -10,13 +10,13 @@ for (let ray of playerLayer) {
     if (ray.point != null) {
         if (ray.distance < dojo.radius * 2) {
             speed += strategy.deltaSpeed;
-            let mitad = playerLayer.length / 2;
-            let giro = Math.abs(mitad - ray.index);
-            if (ray.index < mitad)
-                turn += -Math.PI / 180 * giro * strategy.deltaTurn;
-            if (ray.index > mitad)
-                turn += Math.PI / 180 * giro * strategy.deltaTurn;
-            if (ray.index > mitad-2 && ray.index < mitad+2 && player.inContact)
+            let middle = playerLayer.length / 2;
+            let deltaTurn = Math.abs(middle - ray.index);
+            if (ray.index < middle)
+                turn += -Math.PI / 180 * deltaTurn * strategy.deltaTurn;
+            if (ray.index > middle)
+                turn += Math.PI / 180 * deltaTurn * strategy.deltaTurn;
+            if (ray.index > middle-2 && ray.index < middle+2 && player.inContact)
                 speed += 30;
         }
     }

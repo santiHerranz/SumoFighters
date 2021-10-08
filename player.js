@@ -52,6 +52,22 @@ class Player {
 
 	}
 
+	getInfo() {
+		return { pos:{
+			x:this.pos.x.toFixed(0),
+			y:this.pos.y.toFixed(0)
+		}, 
+		speed:{
+			x:this.speed.x.toFixed(2),
+			y:this.speed.y.toFixed(2),
+		}, 
+		angle: this.heading.toFixed(2),
+		energy: this.energy.toFixed(0),
+		contact: this.inContact,
+		memory: this.memory
+		};
+	}
+
 	step() {
 		this.showRays = showRays;
 

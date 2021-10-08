@@ -16,7 +16,9 @@ let score_B = 0;
 
 const GAME_TIME_SECONDS = 60;
 
-var menuGame, modalMenuGame, modalEl, scoreEl, strategyAFuncText, strategyBFuncText;
+var menuGame, modalMenuGame, modalEl, scoreAEl, scoreBEl;
+var strategyAFuncText, strategyBFuncText;
+var statusAText, statusBText;
 
 var hitSoundTime = 0;
 
@@ -35,6 +37,7 @@ var player_Dummy;
 
 // Some juice
 var particles = [];
+var trails = [];
 
 const IMPULSO_X = 3;
 const IMPULSO_Y = 3;
@@ -75,10 +78,14 @@ function prepare() {
 	modalMenuGame = document.getElementById("my-modal");
 
 	modalEl = document.getElementById('modalEl');
-	scoreEl = document.getElementById('scoreEl');
+	scoreAEl = document.getElementById('scoreAEl');
+	scoreBEl = document.getElementById('scoreBEl');
 	scoreBigEl = document.getElementById('scoreBigEl');
 	strategyAFuncText = document.getElementById('strategyAFuncText');
 	strategyBFuncText = document.getElementById('strategyBFuncText');
+	statusAText = document.getElementById('statusAText');
+	statusBText = document.getElementById('statusBText');
+	
 	// canvas
 	canvas = document.getElementById('canvas');
 	width = window.innerWidth;
@@ -177,6 +184,9 @@ function gameMenuStart(mode) {
 
 function init() {
 
+	// clear trails
+	trails = [];
+
 	// Initial position
 	player_A.pos.x = width * 5 / 12;
 	player_A.pos.y = height / 2;
@@ -223,9 +233,9 @@ function loop() {
 
 function step() {
 
-	particles = particles.filter(particle => {
-		return particle.health > 0
-	});
+	// remove death stuff
+	particles = particles.filter(particle => {	return particle.health > 0	});
+	trails = trails.filter(trail => {	return trail.health > 0	});
 
 	if (gameMode == GAME_MODE.NONE)
 		return;
@@ -250,6 +260,14 @@ function step() {
 		strategyAFuncText.innerHTML = JSON.stringify(player_A.strategyFunc.toString().replace(/\n\n/g, "\n").replace(/\n/g, "&#13;").replace(/\r/g, "").replace(/\t/g, "  ")); // .split(/\/\*\n|\n\*\//g).slice(1,-1).join()
 		strategyBFuncText.innerHTML = JSON.stringify(player_B.strategyFunc.toString().replace(/\n\n/g, "\n").replace(/\n/g, "&#13;").replace(/\r/g, "").replace(/\t/g, "  ")); // .split(/\/\*\n|\n\*\//g).slice(1,-1).join()
 
+		statusAText.innerHTML = JSON.stringify(player_A.getInfo(),null,2);
+		statusBText.innerHTML = JSON.stringify(player_B.getInfo(),null,2);
+
+
+		players.forEach(player => {
+			trails.push(new Trail(player.pos.x, player.pos.y, player.color));
+		});
+		
 		players.forEach(player => {
 			//drive(player, avoidOutRingBackwarsDrive);
 			drive(player, player.strategyFunc);
@@ -300,9 +318,8 @@ function step() {
 			}
 		}
 
-		particles.forEach(b => {
-			b.step();
-		});
+		particles.forEach(particle => particle.step());
+		trails.forEach(trail => trail.step());
 
 	}
 
@@ -379,6 +396,8 @@ function draw() {
 
 	walls.forEach(wall => wall.show());
 
+	trails.forEach(trail => trail.draw());
+
 	players.forEach(player => {
 		player.draw();
 	});
@@ -392,7 +411,8 @@ function draw() {
 		ctx.putImageData(imgData, 10, 70);
 	}
 
-	scoreEl.innerHTML = score_A + ' - ' + score_B;
+	scoreAEl.innerHTML = score_A;
+	scoreBEl.innerHTML = score_B;
 }
 
 function checkTatamiLimits(player, tatami) {
@@ -521,7 +541,7 @@ function playSound(sound, p = 0) {
 		//zzfx(...[2,.5,181,.01,,0,,.88,,,495,,,,,,.18,.1]); // Random 6
 		//zzfx(...[2,-0.05,181,.01,,0,,.88,,,495,,,,,,.18,.1,.01]); // Random 6
 		//zzfx(...[2, -0.05, 65.40639, .01, , 0, , 0, , , , , , , , , .18, 0, .01]); // Random 6
-		zzfx(...[,-0.05,65.40639,.01,,0,,0,,,,,,,,,.18,0,.01]); // Random 6
+		//zzfx(...[,-0.05,65.40639,.01,,0,,0,,,,,,,,,.18,0,.01]); // Random 6
 		break;
 
 	default:

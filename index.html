@@ -56,7 +56,7 @@
           class="bg-blue-600 p-2 rounded-md">Robot A</span></span>
     </div>
 
-    <div class="px-4">Score: <span id="scoreEl"></span> </div>
+    <div class="text-lg px-4">Score: <span id="scoreAEl" class="bg-blue-600 p-2 rounded-lg"></span> - <span id="scoreBEl" class="bg-red-600 p-2 rounded-lg"></span> </div>
 
     <div class="px-4">
       <button class="button bg-green-600 w-20 h-10 rounded-md p-0" id="gamePauseBtn">Pause</button>
@@ -73,7 +73,7 @@
       <input type=checkbox id=input_playsounds checked onchange="UpdateSettings();"> <label for="input_playsounds"> Play sounds
       </label>
     </div>
-    <div class="px-4">
+    <div class="px-4 hidden">
       <input type=checkbox id=input_playcollision_sounds checked onchange="UpdateSettings();"> <label for="input_playcollision_sounds"> Play collision sound
       </label>
     </div>
@@ -88,10 +88,13 @@
   <div id="myLeftNav" class="overlay-left">
     <a href="javascript:void(0)" class="closebtn" onclick="closeLeftNav()">&times;</a>
     <div class="overlay-left-content">
-      <a href="#">ROBOT A</a>
+      <a href="#"><span class="bg-blue-600 p-2 rounded-lg">ROBOT A</span></a>
       <div>
-        <h2><span class="bg-blue-600 p-2 rounded-lg">Strategy</span></h2>
-        <textarea id="strategyAFuncText" rows="50" cols="60" class="text-grey-darkest flex-1 p-2 m-1 text-xs"
+        <h2><span class="text-white p-2 rounded-lg">Status</span></h2>
+        <textarea id="statusAText" rows="5" cols="60" class="text-grey-darkest flex-1 p-2 m-1 text-xs"
+          style="float:left; width: 100%;"></textarea>
+        <h2><span class="text-white p-2 rounded-lg">Strategy</span></h2>
+        <textarea id="strategyAFuncText" rows="25" cols="60" class="text-grey-darkest flex-1 p-2 m-1 text-xs"
           style="float:left; width: 100%;"></textarea>
       </div>
 
@@ -102,10 +105,13 @@
   <div id="myRightNav" class="overlay-right">
     <a href="javascript:void(0)" class="closebtn" onclick="closeRightNav()">&times;</a>
     <div class="overlay-right-content">
-      <a href="#">ROBOT B</a>
+      <a href="#"><span class="bg-red-600 p-2 rounded-lg">ROBOT B</span></a>
 
       <div>
-        <h2><span class="bg-red-600 p-2 rounded-lg">Strategy</span></h2>
+        <h2><span class="text-white p-2 rounded-lg">Status</span></h2>
+        <textarea id="statusBText" rows="5" cols="60" class="text-grey-darkest flex-1 p-2 m-1 text-xs"
+          style="float:right; width: 100%;"></textarea>
+        <h2><span class="text-white p-2 rounded-lg">Strategy</span></h2>
         <textarea id="strategyBFuncText" rows="50" cols="60" class="text-grey-darkest flex-1 p-2 m-1 text-xs"
           style="float:right; width: 100%;"></textarea>
       </div>
@@ -232,6 +238,7 @@
   <script src="ray.js"></script>
   <script src="boundary.js"></script>
   <script src="inputs.js"></script>
+  <script src="trail.js"></script>
   <script src="particle.js"></script>
   <script src="dojo.js"></script>
   <script src="strategy.js"></script>
