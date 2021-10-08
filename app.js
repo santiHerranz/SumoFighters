@@ -6,6 +6,8 @@ height;
 
 var deltaTime = 0.12;
 var showRays = false;
+var showTrails = true;
+
 var playSounds = true;
 var playCollisionSound = true;
 var showBoundaries = false;
@@ -21,6 +23,7 @@ var strategyAFuncText, strategyBFuncText;
 var statusAText, statusBText;
 
 var hitSoundTime = 0;
+var trailTime = 0;
 
 const GAME_MODE = {
 	NONE: 0,
@@ -85,7 +88,7 @@ function prepare() {
 	strategyBFuncText = document.getElementById('strategyBFuncText');
 	statusAText = document.getElementById('statusAText');
 	statusBText = document.getElementById('statusBText');
-	
+
 	// canvas
 	canvas = document.getElementById('canvas');
 	width = window.innerWidth;
@@ -234,8 +237,12 @@ function loop() {
 function step() {
 
 	// remove death stuff
-	particles = particles.filter(particle => {	return particle.health > 0	});
-	trails = trails.filter(trail => {	return trail.health > 0	});
+	particles = particles.filter(particle => {
+		return particle.health > 0
+	});
+	trails = trails.filter(trail => {
+		return trail.health > 0
+	});
 
 	if (gameMode == GAME_MODE.NONE)
 		return;
@@ -260,14 +267,18 @@ function step() {
 		strategyAFuncText.innerHTML = JSON.stringify(player_A.strategyFunc.toString().replace(/\n\n/g, "\n").replace(/\n/g, "&#13;").replace(/\r/g, "").replace(/\t/g, "  ")); // .split(/\/\*\n|\n\*\//g).slice(1,-1).join()
 		strategyBFuncText.innerHTML = JSON.stringify(player_B.strategyFunc.toString().replace(/\n\n/g, "\n").replace(/\n/g, "&#13;").replace(/\r/g, "").replace(/\t/g, "  ")); // .split(/\/\*\n|\n\*\//g).slice(1,-1).join()
 
-		statusAText.innerHTML = JSON.stringify(player_A.getInfo(),null,2);
-		statusBText.innerHTML = JSON.stringify(player_B.getInfo(),null,2);
+		statusAText.innerHTML = JSON.stringify(player_A.getInfo(), null, 2);
+		statusBText.innerHTML = JSON.stringify(player_B.getInfo(), null, 2);
 
+		// Trails
+		if (trailTime > 0.1 / deltaTime) {
+			players.forEach(player => {
+				trails.push(new Trail(player.pos.x, player.pos.y, player.color));
+			});
+			trailTime = 0;
+		} else
+			trailTime += 1;
 
-		players.forEach(player => {
-			trails.push(new Trail(player.pos.x, player.pos.y, player.color));
-		});
-		
 		players.forEach(player => {
 			//drive(player, avoidOutRingBackwarsDrive);
 			drive(player, player.strategyFunc);
@@ -336,25 +347,22 @@ function collideAndPush(one, other) {
 		one.inContact = true;
 		other.inContact = true;
 
-
 		// Agressive collission
 		// update hit sound
-		let speed = one.speed.mag()/deltaTime + other.speed.mag()/deltaTime;
+		let speed = one.speed.mag() / deltaTime + other.speed.mag() / deltaTime;
 		if (speed > 10) {
 
-
 			hitSoundTime += speed;
-			if (hitSoundTime > 50/deltaTime) {
+			if (hitSoundTime > 50 / deltaTime) {
 
-			// point of collission
-			let point = one.pos.copy().add(Vector.fromAngle(other.pos.copy().sub(one.pos).heading(), other.radius));
-			for (let index = 0; index < 4; index++) {
-				particles.push(new Particle(point.x, point.y));
-						}
+				// point of collission
+				let point = one.pos.copy().add(Vector.fromAngle(other.pos.copy().sub(one.pos).heading(), other.radius));
+				for (let index = 0; index < 4; index++) {
+					particles.push(new Particle(point.x, point.y));
+				}
 
 				hitSoundTime = 0;
 				playSound("HIT");
-
 
 			}
 		} else
@@ -509,7 +517,8 @@ loop();
 
 function playSound(sound, p = 0) {
 
-	if (!playSounds) return;
+	if (!playSounds)
+		return;
 
 	switch (sound) {
 
@@ -526,7 +535,8 @@ function playSound(sound, p = 0) {
 		break;
 
 	case "HIT":
-		if (!playCollisionSound) return;
+		if (!playCollisionSound)
+			return;
 		// zzfx([.5,,1e3,.02,,.2,1,3,.1,,,,,1,-30,.5,,.5]);
 		//zzfx([,,90,,.01,.03,4,,,,,,,9,50,.2,,.2,.01]);
 		//zzfx(...[.3,.1,70,,,.01,4,,,,-9,.1,,,,,,.5]			);

@@ -1,6 +1,6 @@
 
 
-function Trail(x,y, color) {
+function Trail(x, y, color) {
 
 	this.x = x;
 	this.y = y;
@@ -13,20 +13,20 @@ function Trail(x,y, color) {
 	this.health = 100;
 }
 
-
-
-Trail.prototype.step = function() {
-	this.health -= deltaTime*1;
+Trail.prototype.step = function () {
+	this.health -= deltaTime * 1;
 }
 
-Trail.prototype.draw = function() {
+Trail.prototype.draw = function () {
 
-	ctx.save();
-	ctx.beginPath();
-	ctx.arc( this.x, this.y, this.radius, 0, Math.PI*2 );
-	ctx.closePath();
-	ctx.fillStyle = this.color.replace(/[^,]+(?=\))/, '0.2');
-	ctx.fill();
-	ctx.restore();
+	if (showTrails) {
+
+		ctx.save();
+		ctx.beginPath();
+		ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+		ctx.closePath();
+		ctx.fillStyle = this.color.replace(/[^,]+(?=\))/, '0.2');
+		ctx.fill();
+		ctx.restore();
+	}
 }
-

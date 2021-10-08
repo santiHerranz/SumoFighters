@@ -70,6 +70,10 @@
       </label>
     </div>
     <div class="px-4">
+      <input type=checkbox id=input_showtrails checked onchange="UpdateSettings();"> <label for="input_showtrails"> Show Trails
+      </label>
+    </div>
+    <div class="px-4">
       <input type=checkbox id=input_playsounds checked onchange="UpdateSettings();"> <label for="input_playsounds"> Play sounds
       </label>
     </div>
@@ -227,6 +231,8 @@
       deltaTime = v / 100;
 
       showRays = input_showrays.checked;
+      showTrails = input_showtrails.checked;
+      
       playSounds = input_playsounds.checked;
       input_playcollision_sounds.disabled = !input_playsounds.checked;
       playCollisionSound = input_playcollision_sounds.checked && !input_playcollision_sounds.disabled;
