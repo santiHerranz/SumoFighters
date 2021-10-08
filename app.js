@@ -4,11 +4,13 @@ ctx,
 width,
 height;
 
+// mouse event variables
+var mousePosition = { x: 0, y: 0 }
+var mouseLeftPressed = false;
+
 var deltaTime = 0.12;
 var showRays = false;
 var showTrails = true;
-
-
 
 var playSounds = true;
 var playCollisionSound = true;
@@ -25,7 +27,6 @@ var statusAText, statusBText;
 var hitSoundTime = 0;
 var trailTime = 0;
 
-
 modalEl = document.getElementById('modalEl');
 scoreAEl = document.getElementById('scoreAEl');
 scoreBEl = document.getElementById('scoreBEl');
@@ -36,8 +37,6 @@ statusAText = document.getElementById('statusAText');
 statusBText = document.getElementById('statusBText');
 
 var game = new Game();
-
-
 
 function prepare() {
 
@@ -55,7 +54,11 @@ function prepare() {
 
 	game.prepare();
 
-	game.status = GAME_STATUS.GAME_MENU;
+	if (game.player_B)
+		game.status = GAME_STATUS.GAME_MENU;
+	else 
+		gameMenuStart(GAME_MODE.CPUvsCPU);
+
 }
 
 function gamePauseHandler() {
@@ -91,7 +94,6 @@ function init() {
 
 	game.init();
 
-
 	modalEl.style.display = 'none';
 	yukoScoreA.style.display = 'none';
 	yukoScoreB.style.display = 'none';
@@ -122,18 +124,37 @@ function step() {
 
 	if (game.status == GAME_STATUS.GAME_RUNNING) {
 
-		strategyAFuncText.innerHTML = JSON.stringify(game.player_A.strategyFunc.toString().replace(/\n\n/g, "\n").replace(/\n/g, "&#13;").replace(/\r/g, "").replace(/\t/g, "  ")); // .split(/\/\*\n|\n\*\//g).slice(1,-1).join()
-		strategyBFuncText.innerHTML = JSON.stringify(game.player_B.strategyFunc.toString().replace(/\n\n/g, "\n").replace(/\n/g, "&#13;").replace(/\r/g, "").replace(/\t/g, "  ")); // .split(/\/\*\n|\n\*\//g).slice(1,-1).join()
 
-		statusAText.innerHTML = JSON.stringify(game.player_A.getInfo(), null, 2);
-		statusBText.innerHTML = JSON.stringify(game.player_B.getInfo(), null, 2);
+		if (game.player_Dummy) {
+			if (game.collide(game.player_A, game.player_Dummy) ) {
 
-
-		if (game.players.length > 1) {
-			if (game.checkDojoLimits(game.player_B, game.dojo)) {
-				score_A += 1;
-				scoreGoal("A");
+				while ( game.checkDojoLimits(game.player_Dummy, game.dojo)) {
+					game.player_Dummy.pos.x = Math.random()*width;
+					game.player_Dummy.pos.y = Math.random()*height;
+				}
 			}
+		}
+
+
+		if (game.player_A)
+			strategyAFuncText.innerHTML = JSON.stringify(game.player_A.strategyFunc.toString().replace(/\n\n/g, "\n").replace(/\n/g, "&#13;").replace(/\r/g, "").replace(/\t/g, "  ")); // .split(/\/\*\n|\n\*\//g).slice(1,-1).join()
+		if (game.player_B)
+			strategyBFuncText.innerHTML = JSON.stringify(game.player_B.strategyFunc.toString().replace(/\n\n/g, "\n").replace(/\n/g, "&#13;").replace(/\r/g, "").replace(/\t/g, "  ")); // .split(/\/\*\n|\n\*\//g).slice(1,-1).join()
+
+		if (game.player_A)
+			statusAText.innerHTML = JSON.stringify(game.player_A.getInfo(), null, 2);
+		if (game.player_B)
+			statusBText.innerHTML = JSON.stringify(game.player_B.getInfo(), null, 2);
+
+		if (game.players.length > 1 && !game.player_Dummy) {
+
+			if (game.player_B) {
+				if (game.checkDojoLimits(game.player_B, game.dojo)) {
+					score_A += 1;
+					scoreGoal("A");
+				}
+			}
+
 			if (game.checkDojoLimits(game.player_A, game.dojo)) {
 				score_B += 1;
 				scoreGoal("B");
@@ -149,11 +170,9 @@ function step() {
 			}
 		}
 
-
 	}
 
 }
-
 
 function draw() {
 
@@ -162,10 +181,7 @@ function draw() {
 	ctx.fillRect(0, 0, width, height);
 	ctx.globalAlpha = 0.9;
 
-
-
 	game.draw();
-
 
 	// CAMERA VIEW
 	if (showCameraView) {
@@ -177,9 +193,6 @@ function draw() {
 	scoreAEl.innerHTML = score_A;
 	scoreBEl.innerHTML = score_B;
 }
-
-
-
 
 function scoreGoal(yuko) {
 
@@ -208,9 +221,7 @@ function scoreGoal(yuko) {
 	}
 }
 
-
-
-// Event Listeners
+// Element Event Listeners
 
 gameBtn.addEventListener('click', () => {
 	init();
@@ -236,9 +247,40 @@ btnPlayervsCPU.addEventListener('click', () => {
 	gameMenuStart(GAME_MODE.PLAYERvsCPU);
 });
 
+// Event Listeners
+
 addEventListener('keydown', onkeydown);
 addEventListener('keyup', onkeyup);
 addEventListener('resize', prepare);
+
+addEventListener('mousedown', (event) => {
+	mousePosition = { x: event.clientX, y: event.clientY }
+	game.mouseDownEvent(mousePosition);
+});
+
+addEventListener('mousemove', (event) => {
+	mousePosition = { x: event.clientX, y: event.clientY }
+	game.mouseMoveEvent(mousePosition);
+});
+
+addEventListener('mouseup', (event) => {
+	mousePosition = { x: event.clientX, y: event.clientY }
+	game.mouseUpEvent(mousePosition);
+});
+
+addEventListener('contextmenu', function (event) {
+	event.preventDefault();
+	event.stopPropagation();
+	return false;
+});
+
+var handleScroll = function (event) {
+
+	return event.preventDefault() && false;
+};
+addEventListener('DOMMouseScroll', handleScroll, false);
+addEventListener('mousewheel', handleScroll, false);
+
 
 
 prepare();

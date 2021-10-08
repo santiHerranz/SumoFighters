@@ -93,13 +93,13 @@ class Game {
 
         if (false) {
             // Dummy player for test
-            player_Dummy = new Player(width / 2, height / 2, playerSize);
-            player_Dummy.strategyFunc = Strategy.IdleDrive;
+            this.player_Dummy = new Player(width / 2, height / 2, playerSize);
+            this.player_Dummy.strategyFunc = Strategy.IdleDrive;
             // No visible for others
-            // player_Dummy.walls.forEach(wall => {
-            // 	walls.push(wall);
-            // });
-            players.push(player_Dummy);
+            this.player_Dummy.walls.forEach(wall => {
+            	this.walls.push(wall);
+            });
+            this.players.push(this.player_Dummy);
         }
     }
 
@@ -207,12 +207,15 @@ class Game {
     }
 
     drawTrails() {
+
         let blueTrails = this.trails.filter(t => {
             return t.color == this.player_A.color
         });
-        let redTrails = this.trails.filter(t => {
-            return t.color == this.player_B.color
-        });
+        let redTrails = [];
+        if (this.player_B)
+            redTrails = this.trails.filter(t => {
+                return t.color == this.player_B.color
+            });
 
         let arrTrails = [blueTrails, redTrails];
 
@@ -250,7 +253,20 @@ class Game {
 
     checkDojoLimits(player, dojo) {
         return !this.dojo.collide(player);
+
+}
+
+collide(one, other) {
+
+    var dx = other.pos.x - one.pos.x,
+    dy = other.pos.y - one.pos.y,
+    dist = Math.sqrt(dx * dx + dy * dy),
+    minDist = one.radius + other.radius;
+    if (dist < minDist+10) {
+        return true;
     }
+    return false;
+}
 
     collideAndPush(one, other) {
 
@@ -311,5 +327,39 @@ class Game {
         player.move(d.speed);
         player.rotate(d.turn);
     }
+
+
+
+
+
+
+
+
+
+
+    mouseDownEvent(position) {
+        mouseLeftPressed = true;
+
+        this.player_Dummy.pos.x = position.x;
+        this.player_Dummy.pos.y = position.y;
+    }
+
+    mouseMoveEvent(position) {
+
+        if (mouseLeftPressed == true) {
+            this.player_Dummy.pos.x = position.x;
+            this.player_Dummy.pos.y = position.y;
+        }
+    }    
+
+    mouseUpEvent(position) {
+
+        this.player_Dummy.pos.x = position.x;
+        this.player_Dummy.pos.y = position.y;
+
+        mouseLeftPressed = false;
+
+    }
+
 
 }

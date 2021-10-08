@@ -61,7 +61,8 @@ class Strategy {
 			//  Strategy.triangle300Drive,
 			Strategy.attackDrive,
 			Strategy.defendDrive,
-			Strategy.evadeDrive
+			// Strategy.evadeDrive,
+			// Strategy.seekDrive
 		]; //
 
 
@@ -195,7 +196,7 @@ class Strategy {
 
 		for (let ray of playerLayer) {
 			if (ray.point != null) {
-				if (ray.distance < game.dojo.radius * 2) {
+				if (ray.distance < Infinity) {
 
 					let mitad = playerLayer.length / 2;
 					let giro = Math.abs(mitad - ray.index);
@@ -211,7 +212,7 @@ class Strategy {
 		}
 
 		if (autoSpeed == 0 && autoTurn == 0)
-			autoTurn = Math.PI / 180 * 10;
+			autoTurn = Math.PI / 180 * 45;
 
 		player.name = strategy.name;
 
