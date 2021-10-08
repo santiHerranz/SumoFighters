@@ -12,7 +12,7 @@
 
     for (let ray of playerLayer) {
         if (ray.point != null) {
-            if (ray.distance < dojo.radius * 2) {
+            if (ray.distance < game.dojo.radius * 2) {
                 speed += strategy.deltaSpeed;
                 let middle = playerLayer.length / 2;    // Middle of rays beams
                 let deltaTurn = Math.abs(playerLayer.length / 2 - ray.index); // Right or left ?

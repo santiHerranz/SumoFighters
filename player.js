@@ -50,7 +50,36 @@ class Player {
 		this.showRays = showRays;
 		this.showEnergyIndicator = true;
 
+		this.stepPos = this.pos.copy();
+		this.lastTrailPos = this.pos.copy();
+		this.trailDistance = 0;
+		this.trailMinDistance = 10;	
+
+        this.listeners = [];
+
 	}
+
+	addListener(listener) {
+        this.listeners.push(listener);
+    }
+
+	trailing(pos, lastPos) {
+        this.listeners.forEach(listener => {
+            listener.trailing(this, pos, lastPos);
+        });
+    }
+
+	reset() {
+		
+		// Initial energy
+		this.energy = 100;
+
+		this.memory = null;
+
+		this.lastTrailPos = this.pos.copy();
+		
+	}
+
 
 	getInfo() {
 		return { pos:{
@@ -63,6 +92,7 @@ class Player {
 		}, 
 		angle: this.heading.toFixed(2),
 		energy: this.energy.toFixed(0),
+		distance: this.distance.toFixed(0),
 		contact: this.inContact,
 		memory: this.memory
 		};
@@ -83,6 +113,19 @@ class Player {
 		wall.a.y = this.pos.y;
 		wall.b.x = this.pos.x + this.offset;
 		wall.b.y = this.pos.y;
+
+
+		// Calculate distance between two steps and trail if is 
+		let d = this.pos.copy().sub(this.stepPos).mag();
+
+		if (this.trailDistance > this.trailMinDistance) {
+			this.trailing(this.lastTrailPos, this.pos);
+			this.lastTrailPos = this.pos.copy();
+			this.trailDistance = 0;
+		} else 
+			this.trailDistance += d;		
+
+			this.stepPos = this.pos.copy();
 
 	}
 

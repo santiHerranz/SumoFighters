@@ -2,6 +2,7 @@
 
 	Strategy.evadeDrive = function(player, strategy = {
 		name: "EVADE",
+		dojo: game.dojo,
 		deltaTurn: 5
 	}) {
 

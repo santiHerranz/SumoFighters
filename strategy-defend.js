@@ -8,7 +8,7 @@ let speed = 0, turn = 0;
 let playerLayer = player.visionLayer[VISION_LAYER.PLAYER];
 for (let ray of playerLayer) {
     if (ray.point != null) {
-        if (ray.distance < dojo.radius * 2) {
+        if (ray.distance < game.dojo.radius * 2) {
             speed += strategy.deltaSpeed;
             let middle = playerLayer.length / 2;
             let deltaTurn = Math.abs(middle - ray.index);

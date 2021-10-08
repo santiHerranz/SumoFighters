@@ -57,8 +57,8 @@ class Strategy {
 
 		let options = [
 			// Strategy.squareDrive,
-			// Strategy. triangle100Drive,
-			// Strategy.triangle300Drive,
+			//Strategy. triangle100Drive,
+			//  Strategy.triangle300Drive,
 			Strategy.attackDrive,
 			Strategy.defendDrive,
 			Strategy.evadeDrive
@@ -195,7 +195,7 @@ class Strategy {
 
 		for (let ray of playerLayer) {
 			if (ray.point != null) {
-				if (ray.distance < dojo.radius * 2) {
+				if (ray.distance < game.dojo.radius * 2) {
 
 					let mitad = playerLayer.length / 2;
 					let giro = Math.abs(mitad - ray.index);
@@ -333,7 +333,7 @@ class Strategy {
 
 		for (let ray of dojoLayer) {
 			if (ray.point != null) {
-				if (ray.distance < dojo.radius * 1 / 5) {
+				if (ray.distance < game.dojo.radius * 1 / 5) {
 
 					let mitad = dojoLayer.length / 2;
 					let giro = Math.abs(mitad - ray.index);

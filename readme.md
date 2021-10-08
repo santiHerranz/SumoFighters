@@ -30,8 +30,12 @@ Work in progress...
 - Forward and backward cost is proportional to distance
 - Rotation cost is porportional to time
 
-## The Battle
 
+## Effects
+- Trails\n when robot moves 
+- Particles\n when robots collides
+
+## The Battle
 - Battle time shall be based on three matches within three minutes
 - The robot who gets two Yuko points during the battle time will be deemed the winner
 - If only one Yuko Point has been won by the end of the battle time, the team which has won the Yuko Point will be deemed the winner.
