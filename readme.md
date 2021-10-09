@@ -32,8 +32,8 @@ Work in progress...
 - D Key + SHIFT Key = Side move to the right
 
 ## Sensors
-- Raycasting: 30 rays +60/-60 degrees
-![imagen](https://user-images.githubusercontent.com/961911/136676411-87c458d4-8e26-455a-ada6-662281fb1e2c.png)
+- Raycasting: +15/-15 rays or +60/-60 degrees\
+<img src="https://user-images.githubusercontent.com/961911/136676411-87c458d4-8e26-455a-ada6-662281fb1e2c.png" alt="Raycasting" height="200"/>
 - 2 vision layers: Players, Dojo boundaries
 - Ground Sensors (Planned)
 
@@ -113,8 +113,6 @@ If any of the following situations arises, the contestant shall get a Yuko Point
 ## Ranking list
 
 
-
-
 ## Vision
 - Scan boundaries
 - Raycasting
@@ -125,6 +123,10 @@ If any of the following situations arises, the contestant shall get a Yuko Point
 
 ## All Japan Robot Sumo Tournament Official Regulation
 https://www.fsi.co.jp/sumo/robot/en/rule.html
+
+
+## Online virtual robot competitions.
+https://roboton.io/
 
 
 
