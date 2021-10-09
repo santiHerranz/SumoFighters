@@ -33,6 +33,7 @@ Work in progress...
 
 ## Sensors
 - Raycasting: 30 rays +60/-60 degrees
+![imagen](https://user-images.githubusercontent.com/961911/136676411-87c458d4-8e26-455a-ada6-662281fb1e2c.png)
 - 2 vision layers: Players, Dojo boundaries
 - Ground Sensors (Planned)
 
