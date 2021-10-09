@@ -1,5 +1,4 @@
 
-
 	Strategy.seekDrive = function(player, strategy = {
 		name: "SEEK",
 		dojo: game.dojo,

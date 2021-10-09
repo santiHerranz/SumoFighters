@@ -97,7 +97,7 @@ class Game {
             this.player_Dummy.strategyFunc = Strategy.IdleDrive;
             // No visible for others
             this.player_Dummy.walls.forEach(wall => {
-            	this.walls.push(wall);
+                this.walls.push(wall);
             });
             this.players.push(this.player_Dummy);
         }
@@ -137,15 +137,15 @@ class Game {
 
     step() {
 
-        // remove death stuff
-        this.particles = this.particles.filter(particle => {
-            return particle.health > 0
-        });
-        this.trails = this.trails.filter(trail => {
-            return trail.health > 0
-        });
-
         if (this.status == GAME_STATUS.GAME_RUNNING) {
+
+            // remove death stuff
+            this.particles = this.particles.filter(particle => {
+                return particle.health > 0
+            });
+            this.trails = this.trails.filter(trail => {
+                return trail.health > 0
+            });
 
             this.players.forEach(player => {
                 player.scan(this.walls, BOUNDARY_TYPE.PLAYER, player.visionLayer[VISION_LAYER.PLAYER])
@@ -183,10 +183,10 @@ class Game {
                 player.step();
             });
 
-        }
+            this.particles.forEach(particle => particle.step());
+            this.trails.forEach(trail => trail.step());
 
-        this.particles.forEach(particle => particle.step());
-        this.trails.forEach(trail => trail.step());
+        }
 
     }
 
@@ -254,19 +254,19 @@ class Game {
     checkDojoLimits(player, dojo) {
         return !this.dojo.collide(player);
 
-}
-
-collide(one, other) {
-
-    var dx = other.pos.x - one.pos.x,
-    dy = other.pos.y - one.pos.y,
-    dist = Math.sqrt(dx * dx + dy * dy),
-    minDist = one.radius + other.radius;
-    if (dist < minDist+10) {
-        return true;
     }
-    return false;
-}
+
+    collide(one, other) {
+
+        var dx = other.pos.x - one.pos.x,
+        dy = other.pos.y - one.pos.y,
+        dist = Math.sqrt(dx * dx + dy * dy),
+        minDist = one.radius + other.radius;
+        if (dist < minDist + 10) {
+            return true;
+        }
+        return false;
+    }
 
     collideAndPush(one, other) {
 
@@ -328,15 +328,6 @@ collide(one, other) {
         player.rotate(d.turn);
     }
 
-
-
-
-
-
-
-
-
-
     mouseDownEvent(position) {
         mouseLeftPressed = true;
 
@@ -350,7 +341,7 @@ collide(one, other) {
             this.player_Dummy.pos.x = position.x;
             this.player_Dummy.pos.y = position.y;
         }
-    }    
+    }
 
     mouseUpEvent(position) {
 
@@ -360,6 +351,5 @@ collide(one, other) {
         mouseLeftPressed = false;
 
     }
-
 
 }

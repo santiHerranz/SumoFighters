@@ -11,6 +11,15 @@ Javascript Simulator for testing robot strategies in sumo battle
 
 Work in progress...
 
+## Robot
+- Circle body with radius
+- Heading
+- Bumper
+
+## Robot movement
+- Move forward / backward
+- Turn left / right
+- Side move left / right
 
 ## Manual Movement (Only in remote strategy)
 - Arrow KEYS or WASD
@@ -22,17 +31,26 @@ Work in progress...
 - A Key + SHIFT Key = Side move to the left
 - D Key + SHIFT Key = Side move to the right
 
+## Sensors
+- Raycasting: 30 rays +60/-60 degrees
+- 2 vision layers: Players, Dojo boundaries
+- Ground Sensors (Planned)
+
+
 ## Robot strategies
-- Idle
+The goal is to push the opponent out of the ring.
+
+- Idle, don't waste your energy
+- Wait, idle some time and then change strategy
+- Face opponent, spin arround and check for rays reflection to keep opponent in front
+- Keep inside dojo, spin arround to detect the ring border then steer moving to the center
+- Seek, face opponent and go towards him
+- Flee, same as seek but in the opposite direction
+- Pursue, face opponent, calculate where will be at current speed and go towards that position
+- Evade, same as pursue but in the opposite direction
+- Attack, Seek and push him out of the ring
+- Defend, face opponent and push when contact
 - Remote control
-- Face opponent
-- Keep inside
-- Seek
-- Flee
-- Pursue
-- Evade
-- Attack: Try to align to center of opponent and push
-- Defend: Try to align to center of opponent and push when contact
 
 ## Energy
 - Movements cost energy
@@ -65,6 +83,10 @@ Work in progress...
 
 
 
+
+## Strategies 
+### Search
+Search is continued in the direction that the opponent was last seen
 
 
 
