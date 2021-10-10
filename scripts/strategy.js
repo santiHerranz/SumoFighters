@@ -59,11 +59,13 @@ class Strategy {
 			// Strategy.squareDrive,
 			//Strategy. triangle100Drive,
 			//  Strategy.triangle300Drive,
+			Strategy.evadeDrive,
+			Strategy.seekDrive,
 			Strategy.attackDrive,
 			Strategy.defendDrive,
-			// Strategy.evadeDrive,
-			// Strategy.seekDrive
-		]; //
+			Strategy.attack2Drive,
+			Strategy.keepInsideDrive,
+				]; //
 
 
 		let index = Math.floor(Math.random() * options.length);

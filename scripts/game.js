@@ -331,23 +331,28 @@ class Game {
     mouseDownEvent(position) {
         mouseLeftPressed = true;
 
-        this.player_Dummy.pos.x = position.x;
-        this.player_Dummy.pos.y = position.y;
-    }
-
-    mouseMoveEvent(position) {
-
-        if (mouseLeftPressed == true) {
+        if (this.player_Dummy) {
             this.player_Dummy.pos.x = position.x;
             this.player_Dummy.pos.y = position.y;
         }
     }
 
+    mouseMoveEvent(position) {
+
+        if (mouseLeftPressed == true) {
+            if (this.player_Dummy) {
+                this.player_Dummy.pos.x = position.x;
+                this.player_Dummy.pos.y = position.y;
+            }
+        }
+    }
+
     mouseUpEvent(position) {
 
-        this.player_Dummy.pos.x = position.x;
-        this.player_Dummy.pos.y = position.y;
-
+        if (this.player_Dummy) {
+            this.player_Dummy.pos.x = position.x;
+            this.player_Dummy.pos.y = position.y;
+        }
         mouseLeftPressed = false;
 
     }

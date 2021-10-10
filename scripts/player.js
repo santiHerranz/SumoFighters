@@ -15,7 +15,7 @@ class Player {
 
 		// Limits
 		this.maxTurn = Math.PI/180*120; 
-		this.maxSpeed = 100;
+		this.maxSpeed = 1000;
 
 		this.speed = createVector(0, 0); // current speed
 		this.distance = 0;
@@ -90,10 +90,7 @@ class Player {
 			x:this.pos.x.toFixed(0),
 			y:this.pos.y.toFixed(0)
 		}, 
-		speed:{
-			x:this.speed.x.toFixed(2),
-			y:this.speed.y.toFixed(2),
-		}, 
+		speed:this.speed.mag().toFixed(2), 
 		angle: this.heading.toFixed(2),
 		energy: this.energy.toFixed(0),
 		distance: this.distance.toFixed(0),
