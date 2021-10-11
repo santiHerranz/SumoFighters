@@ -51,6 +51,7 @@ The goal is to push the opponent out of the ring.
 - Evade, same as pursue but in the opposite direction
 - Attack, Seek and push him out of the ring
 - Defend, face opponent and push when contact
+- Agressive defend, face opponent and push strong when contact
 - Remote control
 
 ## Energy

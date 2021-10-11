@@ -155,7 +155,7 @@ class Game {
 
             this.players.forEach(player => {
                 //drive(player, avoidOutRingBackwarsDrive);
-                this.drive(player, player.strategyFunc);
+                player.drive();
             });
 
             // Avoid same boring strategy
@@ -167,6 +167,7 @@ class Game {
             // contact
             this.players.forEach(player => {
                 player.inContact = false;
+                player.contactPoint = null;
             });
             let i = this.players.length;
             while (i--) {
@@ -242,7 +243,7 @@ class Game {
     }
 
     sparkling(point) {
-        for (let index = 0; index < 4; index++) {
+        for (let index = 0; index < 2; index++) {
             this.particles.push(new Particle(point.x, point.y));
         }
     }
@@ -276,27 +277,16 @@ class Game {
         minDist = one.radius + other.radius;
 
         if (dist < minDist) {
-            one.inContact = true;
-            other.inContact = true;
 
-            // Agressive collission
-            // update hit sound
-            let speed = one.speed.mag() / deltaTime + other.speed.mag() / deltaTime;
-            if (speed > 10) {
+            let point = one.pos.copy().add(Vector.fromAngle(other.pos.copy().sub(one.pos).heading(), other.radius));
 
-                hitSoundTime += speed;
-                if (hitSoundTime > 50 / deltaTime) {
+            one.hit(point);
+            other.hit(point);
 
-                    // add some ssparks at point of collission
-                    let point = one.pos.copy().add(Vector.fromAngle(other.pos.copy().sub(one.pos).heading(), other.radius));
-                    game.sparkling(point);
 
-                    hitSoundTime = 0;
-                    playSound("HIT");
+            game.sparkling(point);
+            playSound("HIT");
 
-                }
-            } else
-                hitSoundTime = .5;
 
             var tx = one.pos.x + dx / dist * minDist,
             ty = one.pos.y + dy / dist * minDist,
@@ -312,20 +302,6 @@ class Game {
 
         }
 
-    }
-
-    drive(player, func) {
-
-        let d = func(player);
-
-        if (d.speed > player.maxSpeed)
-            d.speed = player.maxSpeed;
-        if (d.turn > player.maxTurn)
-            d.turn = player.maxTurn;
-
-        // Apply
-        player.move(d.speed);
-        player.rotate(d.turn);
     }
 
     mouseDownEvent(position) {

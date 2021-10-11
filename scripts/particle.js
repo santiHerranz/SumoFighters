@@ -6,8 +6,8 @@ function Particle(x,y) {
 	this.y = y;
 	this.radius = 1;
 
-	this.vx = 100 * (Math.random() - 0.5);
-	this.vy = 100 * (Math.random() - 0.5);
+	this.vx = 120 * (Math.random() - 0.5);
+	this.vy = 120 * (Math.random() - 0.5);
 
 	this.color = "yellow";
 	this.health = 100;

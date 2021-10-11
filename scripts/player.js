@@ -14,7 +14,7 @@ class Player {
 		this.lastPos = this.pos.copy();
 
 		// Limits
-		this.maxTurn = Math.PI/180*120; 
+		this.maxTurn = Math.PI / 180 * 120;
 		this.maxSpeed = 1000;
 
 		this.speed = createVector(0, 0); // current speed
@@ -23,6 +23,15 @@ class Player {
 		this.heading = 0;
 
 		this.inContact = false;
+		this.contactPoint = null;
+		this.contact = {
+			heading: 0,
+			top: 0,
+			bottom: 0,
+			left: 0,
+			right: 0
+		};
+		this.contactTimer = 0;
 
 		this.strategyFunc = Strategy.IdleDrive;
 		this.memory = null; // {distance:0, dir:1};
@@ -43,7 +52,6 @@ class Player {
 			this.rays.push(new Ray(this.pos, radians(a), BOUNDARY_TYPE.PLAYER));
 		}
 
-
 		this.walls = [];
 		// These walls do not interfere with your own beam.
 		this.offset = this.radius;
@@ -57,49 +65,95 @@ class Player {
 		this.stepPos = this.pos.copy();
 		this.lastTrailPos = this.pos.copy();
 		this.trailDistance = 0;
-		this.trailMinDistance = 10;	
+		this.trailMinDistance = 10;
 
-        this.listeners = [];
+		this.listeners = [];
 
 	}
 
 	addListener(listener) {
-        this.listeners.push(listener);
-    }
+		this.listeners.push(listener);
+	}
 
 	trailing(pos, lastPos) {
-        this.listeners.forEach(listener => {
-            listener.trailing(this, pos, lastPos);
-        });
-    }
+		this.listeners.forEach(listener => {
+			listener.trailing(this, pos, lastPos);
+		});
+	}
 
 	reset() {
-		
+
 		// Initial energy
 		this.energy = 100;
 
 		this.memory = null;
 
 		this.lastTrailPos = this.pos.copy();
-		
+
 	}
 
-
 	getInfo() {
-		return { pos:{
-			x:this.pos.x.toFixed(0),
-			y:this.pos.y.toFixed(0)
-		}, 
-		speed:this.speed.mag().toFixed(2), 
-		angle: this.heading.toFixed(2),
-		energy: this.energy.toFixed(0),
-		distance: this.distance.toFixed(0),
-		contact: this.inContact,
-		memory: this.memory
+		return {
+			pos: {
+				x: this.pos.x.toFixed(0),
+				y: this.pos.y.toFixed(0)
+			},
+			speed: this.speed.mag().toFixed(2),
+			angle: this.heading.toFixed(2),
+			contactHeading: this.contact.heading.toFixed(2),
+			contactTop: this.contact.top,
+			contactLeft: this.contact.left,
+			contactRight: this.contact.right,
+			contactBottom: this.contact.bottom,
+			energy: this.energy.toFixed(0),
+			distance: this.distance.toFixed(0),
+			contact: this.inContact,
+			memory: this.memory
 		};
 	}
 
+	drive() {
+
+		let d = this.strategyFunc(this);
+
+		if (d.speed > this.maxSpeed)
+			d.speed = this.maxSpeed;
+		if (d.turn > this.maxTurn)
+			d.turn = this.maxTurn;
+
+		// Apply
+		this.move(d.speed);
+		this.rotate(d.turn);
+	}
+
+	hit(point) {
+
+		if (this.contactTimer == 0) {
+			this.inContact = true;
+			this.contactPoint = point;
+			this.contactTimer = 20;
+		}
+	}
+
 	step() {
+
+		if (this.contactTimer > 0)
+			this.contactTimer--;
+		else {
+			this.inContact = false;
+			this.contactPoint = null;
+			this.contact= {
+				heading: 0,
+				top: 0,
+				bottom: 0,
+				left: 0,
+				right: 0
+			};
+		}
+
+		// force 360
+		//this.heading = (this.heading + Math.PI*2) % Math.PI*2;
+
 		this.showRays = showRays;
 
 		// Move boundaries as body moves
@@ -115,24 +169,38 @@ class Player {
 		wall.b.x = this.pos.x + this.offset;
 		wall.b.y = this.pos.y;
 
+		// decode contact point into self reference sides
+		if (this.inContact && this.contactPoint != null) {
 
-		// Calculate distance between two steps and trail if is 
+			let vectorContact = this.pos.copy().sub(this.contactPoint);
+			this.contact.heading = vectorContact.heading();
+			let v = Vector.fromAngle(this.heading - this.contact.heading, 1);
+			let angle = 180 + v.heading() * 180 / Math.PI;
+
+			angle = (angle + 360) % 360;
+
+			this.contact.top = 360 - 45 < angle && angle < 360 || 0 < angle && angle < 45 ? 1 : 0;
+			this.contact.left = 45 < angle && angle < 90 + 45 ? 1 : 0;
+			this.contact.bottom = 90 + 45 < angle && angle < 180 + 45 ? 1 : 0;
+			this.contact.right = 180 + 45 < angle && angle < 270 + 45 ? 1 : 0;
+
+		} 
+
+		// Calculate distance between two steps and trail if is
 		let d = this.pos.copy().sub(this.stepPos).mag();
 
 		if (this.trailDistance > this.trailMinDistance) {
 			this.trailing(this.lastTrailPos, this.pos);
 			this.lastTrailPos = this.pos.copy();
 			this.trailDistance = 0;
-		} else 
-			this.trailDistance += d;		
+		} else
+			this.trailDistance += d;
 
-			this.stepPos = this.pos.copy();
+		this.stepPos = this.pos.copy();
 
 	}
 
 	draw() {
-
-
 
 		// Ray
 		if (this.showRays) {
@@ -142,48 +210,83 @@ class Player {
 				if (ray.point != null) {
 
 					if (ray.distance < 300)
-						ctx.strokeStyle = "rgb(255,255,0,0.6)"
+						ctx.strokeStyle = "rgb(255,255,0,0.6)";
 					else
 						ctx.strokeStyle = ray.color;
 
-				ctx.beginPath();
-				ctx.moveTo(this.pos.x, this.pos.y);
-				ctx.lineTo(ray.point.x, ray.point.y);
-				ctx.stroke();
-			}
+					ctx.beginPath();
+					ctx.moveTo(this.pos.x, this.pos.y);
+					ctx.lineTo(ray.point.x, ray.point.y);
+					ctx.stroke();
+				}
 
 			}
-
 
 			for (let ray of this.visionLayer[VISION_LAYER.DOJO]) {
 				if (ray.point != null) {
 
 					if (ray.distance < 300)
-						ctx.strokeStyle = "rgb(255,0,0,0.6)"
+						ctx.strokeStyle = "rgb(255,0,0,0.6)";
 					else
 						ctx.strokeStyle = ray.color;
 
-				ctx.beginPath();
-				ctx.moveTo(this.pos.x, this.pos.y);
-				ctx.lineTo(ray.point.x, ray.point.y);
-				ctx.stroke();
-			}
+					ctx.beginPath();
+					ctx.moveTo(this.pos.x, this.pos.y);
+					ctx.lineTo(ray.point.x, ray.point.y);
+					ctx.stroke();
+				}
 
 			}
 
-		}		
+		}
 
 		// Body
 		ctx.fillStyle = this.bgcolor;
 		ctx.strokeStyle = this.color;
 
-		ctx.lineWidth = this.inContact?6:2;
+		ctx.lineWidth = 1; //this.inContact?6:2;
 		ctx.beginPath();
 		ctx.arc(this.pos.x, this.pos.y, this.radius, 0, Math.PI * 2);
 		ctx.closePath();
 		ctx.fill();
 		ctx.stroke();
 
+
+		// Contac body section
+		ctx.lineWidth = 6;
+		ctx.strokeStyle = "rgb(255,255,0,0.8)";
+
+		if (this.contact.top) {
+			ctx.beginPath();
+			ctx.arc(this.pos.x, this.pos.y, this.radius, this.heading - Math.PI / 4, this.heading + Math.PI / 4);
+			ctx.stroke();
+		}
+		if (this.contact.right) {
+			ctx.beginPath();
+			ctx.arc(this.pos.x, this.pos.y, this.radius, Math.PI / 2 + this.heading - Math.PI / 4, Math.PI / 2 + this.heading + Math.PI / 4);
+			ctx.stroke();
+		}
+		if (this.contact.bottom) {
+			ctx.beginPath();
+			ctx.arc(this.pos.x, this.pos.y, this.radius, Math.PI + this.heading - Math.PI / 4, Math.PI + this.heading + Math.PI / 4);
+			ctx.stroke();
+		}
+
+		if (this.contact.left) {
+			ctx.beginPath();
+			ctx.arc(this.pos.x, this.pos.y, this.radius, Math.PI * 3 / 2 + this.heading - Math.PI / 4, Math.PI * 3 / 2 + this.heading + Math.PI / 4);
+			ctx.stroke();
+		}
+
+		// Contact point
+		// if (this.contactPoint != null) {
+		// 	ctx.lineWidth = 1;
+		// 	ctx.beginPath();
+		// 	ctx.arc(this.contactPoint.x, this.contactPoint.y, 20, 0, Math.PI * 2);
+		// 	ctx.closePath();
+		// 	ctx.strokeStyle = "rgb(255,255,255,0.9)";
+		// 	ctx.stroke();
+		// }
 
 		// Heading line
 		let maxL = this.radius;
@@ -196,7 +299,6 @@ class Player {
 		ctx.closePath();
 		ctx.stroke();
 
-
 		// Energy indicator
 		if (this.showEnergyIndicator) {
 
@@ -206,8 +308,6 @@ class Player {
 			ctx.lineWidth = 8;
 			ctx.translate(this.pos.x, this.pos.y);
 			ctx.rotate(this.heading - Math.PI / 2);
-
-
 
 			ctx.beginPath();
 			ctx.moveTo(0 - 10, 0 - offset);
@@ -221,18 +321,17 @@ class Player {
 			ctx.lineTo(0 - 10 + 20 * (this.energy / 100.0), 0 - offset);
 			ctx.stroke();
 
-
 			ctx.rotate(Math.PI);
 			ctx.font = 'bold 10px verdana';
-			ctx.shadowColor="black";
+			ctx.shadowColor = "black";
 			ctx.shadowBlur = 3;
 			ctx.fillStyle = 'white';
-	
+
 			var title = this.name;
 			var size = ctx.measureText(title);
 			var x = 0 - size.width / 2;
-			var y = 0 + this.radius/2;
-			ctx.fillText(title, x, y);			
+			var y = 0 + this.radius / 2;
+			ctx.fillText(title, x, y);
 
 			ctx.restore();
 		}
@@ -244,7 +343,7 @@ class Player {
 		if (this.energy <= 0)
 			return;
 
-		this.heading += deltaTime*angle;
+		this.heading += deltaTime * angle;
 		let index = 0;
 		for (let a = -this.fieldOfView / 2; a <= this.fieldOfView / 2; a += this.deltaFieldOfView) {
 			this.rays[index].setAngle(radians(a) + this.heading);
@@ -252,18 +351,19 @@ class Player {
 		}
 
 		// Energy cost for rotate
-		if (angle != 0 )
-			this.energy -= deltaTime*0.01;
+		if (angle != 0)
+			this.energy -= deltaTime * 0.01;
 	}
 
 	move(amt) {
 
-		if (this.aenergy <= 0)
+		if (this.energy <= 0) {
 			return;
+		}
 
 		this.lastPos = this.pos.copy();
 
-		const vel = Vector.fromAngle(this.heading, deltaTime*amt);
+		const vel = Vector.fromAngle(this.heading, deltaTime * amt);
 		this.speed = vel;
 		this.pos.add(vel);
 
@@ -271,7 +371,7 @@ class Player {
 		this.distance += d;
 
 		// energy cost of move
-		this.energy -= d*0.01;
+		this.energy -= d * 0.01;
 	}
 
 	sideMove(amt) {
@@ -280,18 +380,17 @@ class Player {
 
 		this.lastPos = this.pos.copy();
 
-		const vel = Vector.fromAngle(this.heading + Math.PI / 2, deltaTime*amt);
+		const vel = Vector.fromAngle(this.heading + Math.PI / 2, deltaTime * amt);
 		this.speed = vel;
 		this.pos.add(this.speed);
 
 		// energy cost of side move
-		this.energy -= deltaTime*0.05;
+		this.energy -= deltaTime * 0.05;
 	}
 
 	update(position) {
 		this.pos.set(position.x, position.y);
 	}
-
 
 	scan(boundaries, type, layer) {
 
@@ -301,10 +400,12 @@ class Player {
 			let record = Infinity;
 
 			//
-			if (type != BOUNDARY_TYPE.ALL )
-				boundaries = boundaries.filter(b => { return b.type == type});
+			if (type != BOUNDARY_TYPE.ALL)
+				boundaries = boundaries.filter(b => {
+					return b.type == type
+				});
 
-			for (let wall of boundaries) { 
+			for (let wall of boundaries) {
 				const pt = ray.cast(wall);
 				if (pt) {
 					let d = Vector.dist(this.pos, pt);
