@@ -59,12 +59,15 @@ class Strategy {
 			// Strategy.squareDrive,
 			//Strategy. triangle100Drive,
 			//  Strategy.triangle300Drive,
+
+			// Strategy.IdleDrive,
 			Strategy.evadeDrive,
 			Strategy.seekDrive,
 			Strategy.attackDrive,
 			Strategy.defendDrive,
 			Strategy.attack2Drive,
 			Strategy.keepInsideDrive,
+			// Strategy.sidemovesDrive,
 				]; //
 
 

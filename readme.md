@@ -12,9 +12,9 @@ Javascript Simulator for testing robot strategies in sumo battle
 Work in progress...
 
 ## Robot
-- Circle body with radius
-- Heading
-- Bumper
+- Circle body
+- Heading pose
+- Side bumper
 
 ## Robot movement
 - Move forward / backward

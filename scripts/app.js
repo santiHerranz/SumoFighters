@@ -220,6 +220,7 @@ function scoreGoal(yuko) {
 
 // Element Event Listeners
 
+
 gameBtn.addEventListener('click', () => {
 	init();
 
@@ -246,9 +247,11 @@ btnPlayervsCPU.addEventListener('click', () => {
 
 // Event Listeners
 
+addEventListener('resize', prepare);
+
+
 addEventListener('keydown', onkeydown);
 addEventListener('keyup', onkeyup);
-addEventListener('resize', prepare);
 
 addEventListener('mousedown', (event) => {
 	mousePosition = { x: event.clientX, y: event.clientY }

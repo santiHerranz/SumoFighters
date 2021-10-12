@@ -100,14 +100,10 @@ class Player {
 			},
 			speed: this.speed.mag().toFixed(2),
 			angle: this.heading.toFixed(2),
-			contactHeading: this.contact.heading.toFixed(2),
-			contactTop: this.contact.top,
-			contactLeft: this.contact.left,
-			contactRight: this.contact.right,
-			contactBottom: this.contact.bottom,
+			//contactHeading: this.contact.heading.toFixed(2),
+			contact: "t"+ this.contact.top +"-l"+ this.contact.left +"-r"+ this.contact.right +"-b"+ this.contact.bottom,
 			energy: this.energy.toFixed(0),
 			distance: this.distance.toFixed(0),
-			contact: this.inContact,
 			memory: this.memory
 		};
 	}
@@ -124,6 +120,8 @@ class Player {
 		// Apply
 		this.move(d.speed);
 		this.rotate(d.turn);
+		if (d.sideSpeed)
+			this.sideMove(d.sideSpeed);
 	}
 
 	hit(point) {
@@ -371,7 +369,7 @@ class Player {
 		this.distance += d;
 
 		// energy cost of move
-		this.energy -= d * 0.01;
+		this.energy -= d * deltaTime *0.1;
 	}
 
 	sideMove(amt) {
@@ -384,8 +382,11 @@ class Player {
 		this.speed = vel;
 		this.pos.add(this.speed);
 
+		let d = this.pos.copy().sub(this.lastPos).mag();
+		this.distance += d;		
+
 		// energy cost of side move
-		this.energy -= deltaTime * 0.05;
+		this.energy -= d * deltaTime *0.1;
 	}
 
 	update(position) {

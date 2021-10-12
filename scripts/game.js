@@ -137,6 +137,15 @@ class Game {
 
     step() {
 
+
+        if (input.K1) this.player_A.strategyFunc = Strategy.IdleDrive;
+        if (input.K2) this.player_A.strategyFunc = Strategy.defendDrive;
+        if (input.K3) this.player_A.strategyFunc = Strategy.attackDrive;
+        if (input.K4) this.player_A.strategyFunc = Strategy.keepInsideDrive;
+        if (input.K5) this.player_A.strategyFunc = Strategy.evadeDrive;
+
+
+
         if (this.status == GAME_STATUS.GAME_RUNNING) {
 
             // remove death stuff
@@ -161,7 +170,11 @@ class Game {
             // Avoid same boring strategy
             if (this.players[0].name == "DEFEND" && this.players[1].name == "DEFEND")
                 init();
-            if (this.players[0].name == "EVADE" && this.players[1].name == "EVADE")
+                if (this.players[0].name == "EVADE" && this.players[1].name == "EVADE")
+                init();
+                if (this.players[0].name == "IDLE" && this.players[1].name == "IDLE")
+                init();
+                if (this.players[0].name == "SIDE MOVES" && this.players[1].name == "SIDE MOVES")
                 init();
 
             // contact
