@@ -48,6 +48,39 @@
             letter-spacing: 0.4px;
         }
 
+        .topbar-timer {
+            font-family: monospace;
+            font-size: 18px;
+            font-weight: bold;
+            letter-spacing: 1px;
+            min-width: 84px;
+            padding: 4px 10px;
+            border-radius: 6px;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: #fff;
+            text-align: center;
+            transition: background 0.2s, color 0.2s, border-color 0.2s;
+        }
+
+        .topbar-timer.topbar-timer-warning {
+            background: rgba(234, 179, 8, 0.25);
+            border-color: rgb(234, 179, 8);
+            color: rgb(253, 224, 71);
+        }
+
+        .topbar-timer.topbar-timer-critical {
+            background: rgba(220, 38, 38, 0.35);
+            border-color: rgb(220, 38, 38);
+            color: rgb(254, 202, 202);
+            animation: timerPulse 0.6s ease-in-out infinite alternate;
+        }
+
+        @keyframes timerPulse {
+            from { transform: scale(1.0); }
+            to   { transform: scale(1.08); }
+        }
+
         .topbar-nav-btn {
             background: transparent;
             color: #fff;
@@ -123,6 +156,18 @@
 
         .topbar-settings-body input[type=range] {
             width: 100%;
+        }
+
+        .topbar-settings-body label #masterTimeSpeedVal {
+            display: inline-block;
+            min-width: 52px;
+            padding: 1px 6px;
+            margin-left: 4px;
+            border-radius: 4px;
+            background: rgba(255, 255, 255, 0.1);
+            font-family: monospace;
+            font-weight: bold;
+            text-align: center;
         }
 
         .overlay-left-content {

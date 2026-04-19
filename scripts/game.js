@@ -44,6 +44,11 @@ class Game {
 
         this.walls = [];
 
+        // Elapsed fight time (in simulation seconds) for the current round.
+        // Advances only while the simulation is running, so it respects
+        // pause and the time-speed control automatically.
+        this.matchTime = 0;
+
     }
 
     prepare() {
@@ -113,6 +118,7 @@ class Game {
         // clear
         this.trails = [];
         this.particles = [];
+        this.matchTime = 0;
 
         // Initial position
         this.player_A.pos.x = width * 5 / 12;
@@ -144,8 +150,9 @@ class Game {
         }
     }
 
-    step() {
-
+    // Poll manual hotkeys. Runs every rendered frame, never tied to the time
+    // speed so the user can always override strategies or re-enable the FSM.
+    runHotkeys() {
 
         if (input.K1) this.player_A.strategyFunc = Strategy.IdleDrive;
         if (input.K2) this.player_A.strategyFunc = Strategy.defendDrive;
@@ -162,65 +169,79 @@ class Game {
             this.player_A.fsm.currentState = null;
             this.player_A.fsm.lastReason = "MANUAL_TO_FSM";
         }
+    }
 
+    // Advance the simulation by exactly one fixed tick (dt = BASE_DELTA_TIME).
+    // The outer loop decides how many ticks to run per frame based on the
+    // current time scale, so physics/AI stay identically calibrated at any
+    // playback speed (slow-mo, normal or fast-forward).
+    simulateTick() {
 
+        if (this.status != GAME_STATUS.GAME_RUNNING) return;
 
-        if (this.status == GAME_STATUS.GAME_RUNNING) {
+        // One tick always represents 1/TICKS_PER_SECOND of fight time, so
+        // the timer runs 1:1 with wall clock at 1x, twice as fast at 2x, etc.
+        this.matchTime += 1 / TICKS_PER_SECOND;
 
-            // remove death stuff
-            this.particles = this.particles.filter(particle => {
-                return particle.health > 0
-            });
-            this.trails = this.trails.filter(trail => {
-                return trail.health > 0
-            });
+        // remove death stuff
+        this.particles = this.particles.filter(particle => {
+            return particle.health > 0
+        });
+        this.trails = this.trails.filter(trail => {
+            return trail.health > 0
+        });
 
-            this.players.forEach(player => {
-                player.scan(this.walls, BOUNDARY_TYPE.PLAYER, player.visionLayer[VISION_LAYER.PLAYER])
-                player.scan(this.walls, BOUNDARY_TYPE.DOJO, player.visionLayer[VISION_LAYER.DOJO])
-                Strategy.applyStateMachine(player);
-            });
+        this.players.forEach(player => {
+            player.scan(this.walls, BOUNDARY_TYPE.PLAYER, player.visionLayer[VISION_LAYER.PLAYER])
+            player.scan(this.walls, BOUNDARY_TYPE.DOJO, player.visionLayer[VISION_LAYER.DOJO])
+            Strategy.applyStateMachine(player);
+        });
 
-            this.players.forEach(player => {
-                //drive(player, avoidOutRingBackwarsDrive);
-                player.drive();
-            });
+        this.players.forEach(player => {
+            //drive(player, avoidOutRingBackwarsDrive);
+            player.drive();
+        });
 
-            // Avoid same boring strategy
-            if (this.players[0].name == "DEFEND" && this.players[1].name == "DEFEND")
-                init();
-                if (this.players[0].name == "EVADE" && this.players[1].name == "EVADE")
-                init();
-                if (this.players[0].name == "IDLE" && this.players[1].name == "IDLE")
-                init();
-                if (this.players[0].name == "SIDE MOVES" && this.players[1].name == "SIDE MOVES")
-                init();
+        // Avoid same boring strategy
+        if (this.players[0].name == "DEFEND" && this.players[1].name == "DEFEND")
+            init();
+            if (this.players[0].name == "EVADE" && this.players[1].name == "EVADE")
+            init();
+            if (this.players[0].name == "IDLE" && this.players[1].name == "IDLE")
+            init();
+            if (this.players[0].name == "SIDE MOVES" && this.players[1].name == "SIDE MOVES")
+            init();
 
-            // contact
-            this.players.forEach(player => {
-                player.inContact = false;
-                player.contactPoint = null;
-            });
-            let i = this.players.length;
-            while (i--) {
-                let dot = this.players[i];
-                var j = i;
-                if (j > 0) {
-                    while (j--) {
-                        this.collideAndPush(dot, this.players[j]);
-                    }
+        // contact
+        this.players.forEach(player => {
+            player.inContact = false;
+            player.contactPoint = null;
+        });
+        let i = this.players.length;
+        while (i--) {
+            let dot = this.players[i];
+            var j = i;
+            if (j > 0) {
+                while (j--) {
+                    this.collideAndPush(dot, this.players[j]);
                 }
             }
-
-            this.players.forEach(player => {
-                player.step();
-            });
-
-            this.particles.forEach(particle => particle.step());
-            this.trails.forEach(trail => trail.step());
-
         }
 
+        this.players.forEach(player => {
+            player.step();
+        });
+
+        this.particles.forEach(particle => particle.step());
+        this.trails.forEach(trail => trail.step());
+    }
+
+    // Backwards-compatible helper: run the hotkeys and one simulation tick.
+    // Prefer calling runHotkeys() + simulateTick() directly from the main loop
+    // so the time-speed controller can schedule multiple ticks per frame.
+    step() {
+        this.runHotkeys();
+        this.simulateTick();
     }
 
     draw() {

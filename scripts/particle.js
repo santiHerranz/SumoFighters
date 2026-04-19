@@ -15,6 +15,12 @@ function Particle(x,y) {
 
 
 
+Particle.prototype.captureRenderPrev = function() {
+	this._prevX = this.x;
+	this._prevY = this.y;
+	this._hasRenderPrev = true;
+}
+
 Particle.prototype.step = function() {
 
 	// friction

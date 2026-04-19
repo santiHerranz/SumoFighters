@@ -55,6 +55,7 @@
 
     <div class="topbar-center">
       <div class="topbar-score">Score: <span id="scoreAEl" class="topbar-badge topbar-badge-a"></span> - <span id="scoreBEl" class="topbar-badge topbar-badge-b"></span></div>
+      <div class="topbar-timer" id="matchTimerEl" title="Time remaining (scales with Time speed)">1:00.0</div>
       <button class="button bg-green-600 w-20 h-10 rounded-md p-0" id="gamePauseBtn">Pause</button>
       <button class="button bg-gray-700 w-24 h-10 rounded-md p-0 text-white" onclick="openTopbarSettings()">Settings</button>
     </div>
@@ -71,9 +72,9 @@
         <button class="topbar-settings-close" onclick="closeTopbarSettings()">&times;</button>
       </div>
       <div class="topbar-settings-body">
-        <label>Time speed: <span id="masterTimeSpeedVal">12</span></label>
-        <input id=slider_masterTimeSpeed title='time' type=range min=1 max=50 value=12 style=width:100%
-          oninput=UpdateSettings();>
+        <label>Time speed: <span id="masterTimeSpeedVal">1.00x</span></label>
+        <input id="slider_masterTimeSpeed" title="Fight time speed (0x pauses, 1x is normal, up to 4x fast-forward)"
+          type="range" min="0" max="400" step="5" value="100" style="width:100%" oninput="UpdateSettings();">
 
         <label><input type=checkbox id=input_showrays onchange="UpdateSettings();"> Show Rays</label>
         <label><input type=checkbox id=input_playsounds checked onchange="UpdateSettings();"> Play sounds</label>
@@ -347,10 +348,15 @@
       document.getElementById(`fsm${prefix}_contactAttackEnergyThresholdVal`).textContent = config.contactAttackEnergyThreshold;
     }
 
+    // Map the slider position (0..400) to a simulation time scale (0.00..4.00x).
+    // The scale is a multiplier over the calibrated fixed step, so 1.00x matches
+    // the original fight pacing exactly.
     function UpdateSettings() {
-      const v = slider_masterTimeSpeed.value;
-      deltaTime = v / 100;
-      masterTimeSpeedVal.textContent = v;
+      const sliderValue = Number(slider_masterTimeSpeed.value);
+      timeScale = sliderValue / 100;
+      // Reset accumulator when pausing so resuming doesn't snap forward.
+      if (timeScale === 0) timeAccumulator = 0;
+      masterTimeSpeedVal.textContent = timeScale.toFixed(2) + "x";
 
       showRays = input_showrays.checked;
       

@@ -416,6 +416,18 @@ class Player {
 		this.pos.set(position.x, position.y);
 	}
 
+	// Snapshot the pre-tick pose so the renderer can interpolate between
+	// consecutive simulation states at any time scale (see app.js).
+	captureRenderPrev() {
+		if (!this._renderPrev) {
+			this._renderPrev = { x: 0, y: 0, heading: 0 };
+		}
+		this._renderPrev.x = this.pos.x;
+		this._renderPrev.y = this.pos.y;
+		this._renderPrev.heading = this.heading;
+		this._hasRenderPrev = true;
+	}
+
 	scan(boundaries, type, layer) {
 		const scanBoundaries = type == BOUNDARY_TYPE.ALL ? boundaries : boundaries.filter(b => b.type == type);
 
