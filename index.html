@@ -48,47 +48,40 @@
    
   </div> -->
 
-  <div class="fixed w-full bg-gray-600 p-2 text-white " style="display:flex; align-items:center; justify-content:center; ">
-    
-    <div class="absolute left-0 top-0">
-
-      <span style="font-size:24px;cursor:pointer;" onclick="openLeftNav()">&#9776; <span
-          class="bg-blue-600 p-2 rounded-md">Robot A</span></span>
+  <div class="topbar">
+    <div class="topbar-side topbar-side-left">
+      <button class="topbar-nav-btn" onclick="openLeftNav()">&#9776; <span class="topbar-badge topbar-badge-a">Robot A</span></button>
     </div>
 
-    <div class="text-lg px-4">Score: <span id="scoreAEl" class="bg-blue-600 p-2 rounded-lg"></span> - <span id="scoreBEl" class="bg-red-600 p-2 rounded-lg"></span> </div>
-
-    <div class="px-4">
+    <div class="topbar-center">
+      <div class="topbar-score">Score: <span id="scoreAEl" class="topbar-badge topbar-badge-a"></span> - <span id="scoreBEl" class="topbar-badge topbar-badge-b"></span></div>
       <button class="button bg-green-600 w-20 h-10 rounded-md p-0" id="gamePauseBtn">Pause</button>
+      <button class="button bg-gray-700 w-24 h-10 rounded-md p-0 text-white" onclick="openTopbarSettings()">Settings</button>
     </div>
-    <div class="px-4">
-      Time speed:<input id=slider_masterTimeSpeed title='time' type=range min=1 max=50 value=12 style=width:200px
-        oninput=UpdateSettings();>
+
+    <div class="topbar-side topbar-side-right">
+      <button class="topbar-nav-btn" onclick="openRightNav()"><span class="topbar-badge topbar-badge-b">Robot B</span> &#9776;</button>
     </div>
-    <div class="px-4">
-      <input type=checkbox id=input_showrays onchange="UpdateSettings();"> <label for="input_showrays"> Show Rays
-      </label>
-    </div>
-    <div class="px-4">
-      <input type=checkbox id=input_showtrails checked onchange="UpdateSettings();"> <label for="input_showtrails"> Show Trails
-      </label>
-    </div>
-    <div class="px-4">
-      <input type=checkbox id=input_playsounds checked onchange="UpdateSettings();"> <label for="input_playsounds"> Play sounds
-      </label>
-    </div>
-    <div class="px-4">
-      <input type=checkbox id=input_showfsmdebug checked onchange="UpdateSettings();"> <label for="input_showfsmdebug"> Show FSM debug
-      </label>
-    </div>
-    <div class="px-4 hidden">
-      <input type=checkbox id=input_playcollision_sounds checked onchange="UpdateSettings();"> <label for="input_playcollision_sounds"> Play collision sound
-      </label>
-    </div>
-    
-    <div class="absolute top-0 right-0">
-      <span style="font-size:24px;cursor:pointer;" onclick="openRightNav()"><span
-          class="bg-red-600 p-2 rounded-lg">Robot B</span> &#9776;</span>
+  </div>
+
+  <div id="topbarSettingsModal" class="topbar-settings-modal" style="display:none;" onclick="if(event.target===this){closeTopbarSettings();}">
+    <div class="topbar-settings-card">
+      <div class="topbar-settings-header">
+        <span>Simulation Settings</span>
+        <button class="topbar-settings-close" onclick="closeTopbarSettings()">&times;</button>
+      </div>
+      <div class="topbar-settings-body">
+        <label>Time speed: <span id="masterTimeSpeedVal">12</span></label>
+        <input id=slider_masterTimeSpeed title='time' type=range min=1 max=50 value=12 style=width:100%
+          oninput=UpdateSettings();>
+
+        <label><input type=checkbox id=input_showrays onchange="UpdateSettings();"> Show Rays</label>
+        <label><input type=checkbox id=input_playsounds checked onchange="UpdateSettings();"> Play sounds</label>
+      </div>
+      <div class="hidden">
+        <input type=checkbox id=input_playcollision_sounds checked onchange="UpdateSettings();"> <label for="input_playcollision_sounds"> Play collision sound
+        </label>
+      </div>
     </div>
   </div>
 
@@ -313,6 +306,14 @@
     function closeRightNav() {
       document.getElementById("myRightNav").style.width = "0%";
     }
+
+    function openTopbarSettings() {
+      document.getElementById("topbarSettingsModal").style.display = "flex";
+    }
+
+    function closeTopbarSettings() {
+      document.getElementById("topbarSettingsModal").style.display = "none";
+    }
   </script>
 
   <script>
@@ -349,14 +350,13 @@
     function UpdateSettings() {
       const v = slider_masterTimeSpeed.value;
       deltaTime = v / 100;
+      masterTimeSpeedVal.textContent = v;
 
       showRays = input_showrays.checked;
-      showTrails = input_showtrails.checked;
       
       playSounds = input_playsounds.checked;
       input_playcollision_sounds.disabled = !input_playsounds.checked;
       playCollisionSound = input_playcollision_sounds.checked && !input_playcollision_sounds.disabled;
-      showFsmDebug = input_showfsmdebug.checked;
 
       if (typeof fsmTuningConfigs === "undefined" || fsmTuningConfigs == null) {
         window.fsmTuningConfigs = {
