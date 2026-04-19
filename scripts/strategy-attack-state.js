@@ -6,25 +6,21 @@ Strategy.attack2Drive = function (player, strategy = {
     let speed = 0,
     turn = 0;
 
-    // strategic data to be stored in memory
-    let memory = {
+    // Strategic data stored in player memory.
+    const memory = Strategy.getMemory(player, {
         state: (Math.random() - 0.5) > 0 ? 'tl' : 'tr',
         counter: Math.round(15 * Math.random()) + 10
-    };
+    });
 
-    // read memory data from player
-    if (player.memory != null)
-        memory = JSON.parse(JSON.stringify(player.memory));
+    const playerLayer = player.visionLayer[VISION_LAYER.PLAYER];
 
-    let playerLayer = player.visionLayer[VISION_LAYER.PLAYER];
-
-    let front_left = playerLayer[13].distance < game.dojo.radius;
-    let front_right = playerLayer[17].distance < game.dojo.radius;
+    const front_left = playerLayer[13].distance < game.dojo.radius;
+    const front_right = playerLayer[17].distance < game.dojo.radius;
 
     switch (memory.state) {
     case 's':
         if (front_left  && front_right ) {
-            state = 's';
+            memory.state = 's';
         } else {
             if (front_left) {
                 memory.state = 'tr';

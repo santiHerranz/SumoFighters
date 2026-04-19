@@ -1,6 +1,32 @@
 
 class Strategy {
 
+	static getMemory(player, defaults) {
+		if (player.memory == null) {
+			return {
+				...defaults
+			};
+		}
+		return {
+			...defaults,
+			...player.memory
+		};
+	}
+
+	static getStrategyOptions() {
+		if (Strategy._strategyOptions == null) {
+			Strategy._strategyOptions = [
+				Strategy.evadeDrive,
+				Strategy.seekDrive,
+				Strategy.attackDrive,
+				Strategy.defendDrive,
+				Strategy.attack2Drive,
+				Strategy.keepInsideDrive,
+			];
+		}
+		return Strategy._strategyOptions;
+	}
+
 	static IdleDrive(player, strategy = {
 			name: "IDLE"
 		}) {
@@ -17,29 +43,19 @@ class Strategy {
 			waitSeconds: 1
 		}) {
 
-		// strategic data to be stored in memory
-		let memory = {
+		// Strategic data stored in player memory.
+		const memory = Strategy.getMemory(player, {
 			startTime: 0
-		};
+		});
 
-		// read memory data from player
-		if (player.memory != null)
-			memory = JSON.parse(JSON.stringify(player.memory));
+		if (memory.startTime == 0) {
+			memory.startTime = Date.now();
+		}
 
-		if (memory.startTime == 0)
-			memory.startTime = new Date();
-
-		let endTime = new Date();
-		let startTime = Date.parse(memory.startTime);
-		var timeDiff = endTime - startTime; //in ms
-
-		// strip the ms
-		timeDiff /= 1000;
-
-		// get seconds
-		var seconds = Math.round(timeDiff);
-		if (seconds > strategy.waitSeconds)
+		const seconds = Math.round((Date.now() - memory.startTime) / 1000);
+		if (seconds > strategy.waitSeconds) {
 			player.strategyFunc = Strategy.randomDrive;
+		}
 
 		player.memory = memory;
 
@@ -55,23 +71,8 @@ class Strategy {
 			name: "RAMDON"
 		}) {
 
-		let options = [
-			// Strategy.squareDrive,
-			//Strategy. triangle100Drive,
-			//  Strategy.triangle300Drive,
-
-			// Strategy.IdleDrive,
-			Strategy.evadeDrive,
-			Strategy.seekDrive,
-			Strategy.attackDrive,
-			Strategy.defendDrive,
-			Strategy.attack2Drive,
-			Strategy.keepInsideDrive,
-			// Strategy.sidemovesDrive,
-				]; //
-
-
-		let index = Math.floor(Math.random() * options.length);
+		const options = Strategy.getStrategyOptions();
+		const index = Math.floor(Math.random() * options.length);
 		player.strategyFunc = options[index];
 
 		player.name = strategy.name;
@@ -128,15 +129,11 @@ class Strategy {
 
 	static polygonDrive(player, strategy) {
 
-		// strategic data to be stored in memory
-		let memory = {
+		// Strategic data stored in player memory.
+		const memory = Strategy.getMemory(player, {
 			distance: 0,
 			dir: 1
-		};
-
-		// read memory data from player
-		if (player.memory != null)
-			memory = JSON.parse(JSON.stringify(player.memory));
+		});
 
 		// get actual speed
 		let autoSpeed = player.speed.mag() / deltaTime;
@@ -197,22 +194,19 @@ class Strategy {
 		let autoSpeed = 0;
 		let autoTurn = 0;
 
-		let playerLayer = player.visionLayer[VISION_LAYER.PLAYER];
+		const playerLayer = player.visionLayer[VISION_LAYER.PLAYER];
+		const middle = playerLayer.length / 2;
+		const turnMultiplier = (Math.PI / 180) * strategy.deltaTurn;
 
 		for (let ray of playerLayer) {
-			if (ray.point != null) {
-				if (ray.distance < Infinity) {
-
-					let mitad = playerLayer.length / 2;
-					let giro = Math.abs(mitad - ray.index);
-
-					if (ray.index < mitad)
-						autoTurn += -Math.PI / 180 * giro * strategy.deltaTurn;
-
-					if (ray.index > mitad)
-						autoTurn += Math.PI / 180 * giro * strategy.deltaTurn;
-
-				}
+			if (ray.point == null || ray.distance === Infinity) {
+				continue;
+			}
+			const turnDelta = Math.abs(middle - ray.index) * turnMultiplier;
+			if (ray.index < middle) {
+				autoTurn -= turnDelta;
+			} else if (ray.index > middle) {
+				autoTurn += turnDelta;
 			}
 		}
 
@@ -272,16 +266,12 @@ class Strategy {
 			distanceToLimit: 100
 		}) {
 
-		// strategic data to be stored in memory
-		let memory = {
+		// Strategic data stored in player memory.
+		const memory = Strategy.getMemory(player, {
 			distance: 0,
 			dir: 1,
 			changeCounts: 0
-		};
-
-		// read memory data from player
-		if (player.memory != null)
-			memory = JSON.parse(JSON.stringify(player.memory));
+		});
 
 		if (memory.changeCounts > 3) {
 			player.strategy = avoidOutRingDrive;
@@ -291,21 +281,18 @@ class Strategy {
 		let autoSpeed = player.speed.mag() / deltaTime;
 		let autoTurn = 0;
 
-		let dojoLayer = player.visionLayer[VISION_LAYER.DOJO];
+		const dojoLayer = player.visionLayer[VISION_LAYER.DOJO];
 
 		if (Math.abs(player.distance - memory.distance) > strategy.minDistanceMoved) {
 			for (let ray of dojoLayer) {
-				if (ray.point != null) {
-					if (ray.distance < strategy.distanceToLimit) {
+				if (ray.point != null && ray.distance < strategy.distanceToLimit) {
+					// checkpoint to mesure distance
+					memory.distance = player.distance;
+					// change direction
+					memory.dir *= -1;
 
-						// checkpoint to mesure distance
-						memory.distance = player.distance;
-						// change direction
-						memory.dir *= -1;
-
-						memory.changeCounts++;
-						break;
-					}
+					memory.changeCounts++;
+					break;
 				}
 			}
 		}
@@ -335,22 +322,20 @@ class Strategy {
 		let autoSpeed = 30;
 		let autoTurn = 0;
 
-		let dojoLayer = player.visionLayer[VISION_LAYER.DOJO];
+		const dojoLayer = player.visionLayer[VISION_LAYER.DOJO];
+		const middle = dojoLayer.length / 2;
+		const ringLimit = game.dojo.radius / 5;
+		const turnMultiplier = (Math.PI / 180) * strategy.deltaTurn;
 
 		for (let ray of dojoLayer) {
-			if (ray.point != null) {
-				if (ray.distance < game.dojo.radius * 1 / 5) {
-
-					let mitad = dojoLayer.length / 2;
-					let giro = Math.abs(mitad - ray.index);
-
-					if (ray.index < mitad)
-						autoTurn += -Math.PI / 180 * giro * strategy.deltaTurn;
-
-					if (ray.index > mitad)
-						autoTurn += Math.PI / 180 * giro * strategy.deltaTurn;
-
-				}
+			if (ray.point == null || ray.distance >= ringLimit) {
+				continue;
+			}
+			const turnDelta = Math.abs(middle - ray.index) * turnMultiplier;
+			if (ray.index < middle) {
+				autoTurn -= turnDelta;
+			} else if (ray.index > middle) {
+				autoTurn += turnDelta;
 			}
 		}
 

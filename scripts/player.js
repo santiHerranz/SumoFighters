@@ -44,12 +44,15 @@ class Player {
 		//this.rayCount = this.fieldOfView / 30;
 
 		this.rays = [];
+		this.rayBaseAngles = [];
 		this.visionLayer = [];
 		this.visionLayer[VISION_LAYER.DOJO] = [];
 		this.visionLayer[VISION_LAYER.PLAYER] = [];
 
 		for (let a = -this.halfFieldOfView; a <= this.halfFieldOfView; a += this.deltaFieldOfView) {
-			this.rays.push(new Ray(this.pos, radians(a), BOUNDARY_TYPE.PLAYER));
+			const baseAngle = radians(a);
+			this.rayBaseAngles.push(baseAngle);
+			this.rays.push(new Ray(this.pos, baseAngle, BOUNDARY_TYPE.PLAYER));
 		}
 
 		this.walls = [];
@@ -140,13 +143,11 @@ class Player {
 		else {
 			this.inContact = false;
 			this.contactPoint = null;
-			this.contact= {
-				heading: 0,
-				top: 0,
-				bottom: 0,
-				left: 0,
-				right: 0
-			};
+			this.contact.heading = 0;
+			this.contact.top = 0;
+			this.contact.bottom = 0;
+			this.contact.left = 0;
+			this.contact.right = 0;
 		}
 
 		// force 360
@@ -170,10 +171,11 @@ class Player {
 		// decode contact point into self reference sides
 		if (this.inContact && this.contactPoint != null) {
 
-			let vectorContact = this.pos.copy().sub(this.contactPoint);
-			this.contact.heading = vectorContact.heading();
-			let v = Vector.fromAngle(this.heading - this.contact.heading, 1);
-			let angle = 180 + v.heading() * 180 / Math.PI;
+			const vectorContactX = this.pos.x - this.contactPoint.x;
+			const vectorContactY = this.pos.y - this.contactPoint.y;
+			this.contact.heading = Math.atan2(vectorContactY, vectorContactX);
+			const headingDiff = this.heading - this.contact.heading;
+			let angle = 180 + headingDiff * 180 / Math.PI;
 
 			angle = (angle + 360) % 360;
 
@@ -185,16 +187,18 @@ class Player {
 		} 
 
 		// Calculate distance between two steps and trail if is
-		let d = this.pos.copy().sub(this.stepPos).mag();
+		const stepDx = this.pos.x - this.stepPos.x;
+		const stepDy = this.pos.y - this.stepPos.y;
+		const d = Math.sqrt(stepDx * stepDx + stepDy * stepDy);
 
 		if (this.trailDistance > this.trailMinDistance) {
 			this.trailing(this.lastTrailPos, this.pos);
-			this.lastTrailPos = this.pos.copy();
+			this.lastTrailPos.set(this.pos.x, this.pos.y, this.pos.z);
 			this.trailDistance = 0;
 		} else
 			this.trailDistance += d;
 
-		this.stepPos = this.pos.copy();
+		this.stepPos.set(this.pos.x, this.pos.y, this.pos.z);
 
 	}
 
@@ -342,10 +346,8 @@ class Player {
 			return;
 
 		this.heading += deltaTime * angle;
-		let index = 0;
-		for (let a = -this.fieldOfView / 2; a <= this.fieldOfView / 2; a += this.deltaFieldOfView) {
-			this.rays[index].setAngle(radians(a) + this.heading);
-			index++;
+		for (let i = 0; i < this.rays.length; i++) {
+			this.rays[i].setAngle(this.rayBaseAngles[i] + this.heading);
 		}
 
 		// Energy cost for rotate
@@ -359,13 +361,13 @@ class Player {
 			return;
 		}
 
-		this.lastPos = this.pos.copy();
+		this.lastPos.set(this.pos.x, this.pos.y, this.pos.z);
 
 		const vel = Vector.fromAngle(this.heading, deltaTime * amt);
 		this.speed = vel;
 		this.pos.add(vel);
 
-		let d = this.pos.copy().sub(this.lastPos).mag();
+		const d = Math.sqrt(vel.x * vel.x + vel.y * vel.y);
 		this.distance += d;
 
 		// energy cost of move
@@ -376,13 +378,13 @@ class Player {
 		if (this.energy <= 0)
 			return;
 
-		this.lastPos = this.pos.copy();
+		this.lastPos.set(this.pos.x, this.pos.y, this.pos.z);
 
 		const vel = Vector.fromAngle(this.heading + Math.PI / 2, deltaTime * amt);
 		this.speed = vel;
 		this.pos.add(this.speed);
 
-		let d = this.pos.copy().sub(this.lastPos).mag();
+		const d = Math.sqrt(vel.x * vel.x + vel.y * vel.y);
 		this.distance += d;		
 
 		// energy cost of side move
@@ -394,38 +396,40 @@ class Player {
 	}
 
 	scan(boundaries, type, layer) {
+		const scanBoundaries = type == BOUNDARY_TYPE.ALL ? boundaries : boundaries.filter(b => b.type == type);
 
 		for (let i = 0; i < this.rays.length; i++) {
 			const ray = this.rays[i];
 			let closest = null;
-			let record = Infinity;
+			let recordSq = Infinity;
 
-			//
-			if (type != BOUNDARY_TYPE.ALL)
-				boundaries = boundaries.filter(b => {
-					return b.type == type
-				});
-
-			for (let wall of boundaries) {
+			for (let wall of scanBoundaries) {
 				const pt = ray.cast(wall);
 				if (pt) {
-					let d = Vector.dist(this.pos, pt);
-					if (d < record) {
-						record = d;
+					const dx = pt.x - this.pos.x;
+					const dy = pt.y - this.pos.y;
+					const dSq = dx * dx + dy * dy;
+					if (dSq < recordSq) {
+						recordSq = dSq;
 						closest = pt;
 					}
 				}
 			}
 
-			layer[i] = {
+			const rayData = layer[i] || (layer[i] = {
 				index: i,
 				dir: ray.dir,
-				point: closest,
-				distance: record,
+				point: null,
+				distance: Infinity,
 				color: "rgb(255,255,255,0.1)",
 				colorActive: "rgb(255,255,255,0.6)",
 				type: type
-			};
+			});
+			rayData.index = i;
+			rayData.dir = ray.dir;
+			rayData.point = closest;
+			rayData.distance = recordSq === Infinity ? Infinity : Math.sqrt(recordSq);
+			rayData.type = type;
 
 		}
 	}

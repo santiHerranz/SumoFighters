@@ -6,14 +6,10 @@
 		deltaTurn: 5
 	}) {
 
-	// strategic data to be stored in memory
-	let memory = {
+	// Strategic data stored in player memory.
+	const memory = Strategy.getMemory(player, {
 		changeCounts: 0
-	};
-
-	// read memory data from player
-	if (player.memory != null)
-		memory = JSON.parse(JSON.stringify(player.memory));
+	});
 
 	let d = {
 		speed: 0,

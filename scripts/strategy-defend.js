@@ -5,20 +5,24 @@ Strategy.defendDrive = function(player, strategy = {
 }) {
 let speed = 0, turn = 0;
 
-let playerLayer = player.visionLayer[VISION_LAYER.PLAYER];
+const playerLayer = player.visionLayer[VISION_LAYER.PLAYER];
+const middle = playerLayer.length / 2;
+const targetDistance = game.dojo.radius * 2;
+const turnMultiplier = (Math.PI / 180) * strategy.deltaTurn;
 for (let ray of playerLayer) {
-    if (ray.point != null) {
-        if (ray.distance < game.dojo.radius * 2) {
-            speed += strategy.deltaSpeed;
-            let middle = playerLayer.length / 2;
-            let deltaTurn = Math.abs(middle - ray.index);
-            if (ray.index < middle)
-                turn += -Math.PI / 180 * deltaTurn * strategy.deltaTurn;
-            if (ray.index > middle)
-                turn += Math.PI / 180 * deltaTurn * strategy.deltaTurn;
-            if (ray.index > middle-2 && ray.index < middle+2 && player.inContact)
-                speed += 30;
-        }
+    if (ray.point == null || ray.distance >= targetDistance) {
+        continue;
+    }
+    speed += strategy.deltaSpeed;
+    const deltaTurn = Math.abs(middle - ray.index);
+    const turnDelta = deltaTurn * turnMultiplier;
+    if (ray.index < middle) {
+        turn -= turnDelta;
+    } else if (ray.index > middle) {
+        turn += turnDelta;
+    }
+    if (ray.index > middle - 2 && ray.index < middle + 2 && player.inContact) {
+        speed += 30;
     }
 }
 if (speed == 0 && turn == 0)

@@ -9,25 +9,29 @@
     }) {
     let speed = 0, turn = 0;
 
-    let playerLayer = player.visionLayer[VISION_LAYER.PLAYER];
+    const playerLayer = player.visionLayer[VISION_LAYER.PLAYER];
+    const middle = playerLayer.length / 2;
+    const targetDistance = game.dojo.radius * 2;
+    const turnMultiplier = (Math.PI / 180) * strategy.deltaTurn;
 
     for (let ray of playerLayer) {
-        if (ray.point != null) {
-            if (ray.distance < game.dojo.radius * 2) {
+        if (ray.point == null || ray.distance >= targetDistance) {
+            continue;
+        }
 
-                speed += strategy.deltaSpeed;
+        speed += strategy.deltaSpeed;
 
-                let middle = playerLayer.length / 2;    // Middle of rays beams
-                let deltaTurn = Math.abs(playerLayer.length / 2 - ray.index); // Right or left ?
-                if (ray.index < middle)
-                    turn += -Math.PI / 180 * deltaTurn * strategy.deltaTurn;
-                if (ray.index > middle)
-                    turn += Math.PI / 180 * deltaTurn * strategy.deltaTurn;
-            }
+        // Middle of ray beams.
+        const deltaTurn = Math.abs(middle - ray.index); // Right or left?
+        const turnDelta = deltaTurn * turnMultiplier;
+        if (ray.index < middle) {
+            turn -= turnDelta;
+        } else if (ray.index > middle) {
+            turn += turnDelta;
         }
     }
 
-    if (player.inContact && playerLayer[15].distance < player.radius*1.2)
+    if (player.inContact && playerLayer[15].distance < player.radius * 1.2)
         speed += strategy.pushSpeed;
 
 

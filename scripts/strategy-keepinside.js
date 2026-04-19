@@ -5,24 +5,20 @@
 	}) {
 
 
-	// strategic data to be stored in memory
-	let memory = {
-		dir: (Math.random()-0.5)>0?1:-1,
+	// Strategic data stored in player memory.
+	const memory = Strategy.getMemory(player, {
+		dir: (Math.random() - 0.5) > 0 ? 1 : -1,
 		speed: 0
-	};
-
-	// read memory data from player
-	if (player.memory != null)
-		memory = JSON.parse(JSON.stringify(player.memory));
+	});
 
 
 	let d = {speed:0, turn:0};
 
-	let dojoLayer = player.visionLayer[VISION_LAYER.DOJO];
+	const dojoLayer = player.visionLayer[VISION_LAYER.DOJO];
 
 
 
-	if (dojoLayer[15].distance < game.dojo.radius/2) {
+	if (dojoLayer[15].distance < game.dojo.radius / 2) {
 		memory.speed *= 0.6;
 		d.turn = memory.dir * Math.PI;
 	}
