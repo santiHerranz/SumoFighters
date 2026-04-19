@@ -77,6 +77,10 @@
       <input type=checkbox id=input_playsounds checked onchange="UpdateSettings();"> <label for="input_playsounds"> Play sounds
       </label>
     </div>
+    <div class="px-4">
+      <input type=checkbox id=input_showfsmdebug checked onchange="UpdateSettings();"> <label for="input_showfsmdebug"> Show FSM debug
+      </label>
+    </div>
     <div class="px-4 hidden">
       <input type=checkbox id=input_playcollision_sounds checked onchange="UpdateSettings();"> <label for="input_playcollision_sounds"> Play collision sound
       </label>
@@ -92,32 +96,118 @@
   <div id="myLeftNav" class="overlay-left">
     <a href="javascript:void(0)" class="closebtn" onclick="closeLeftNav()">&times;</a>
     <div class="overlay-left-content">
-      <a href="#"><span class="bg-blue-600 p-2 rounded-lg">ROBOT A</span></a>
-      <div>
-        <h2><span class="text-white p-2 rounded-lg">Status</span></h2>
-        <textarea id="statusAText" rows="5" cols="60" class="text-grey-darkest flex-1 p-2 m-1 text-xs"
-          style="float:left; width: 100%;"></textarea>
-        <h2><span class="text-white p-2 rounded-lg">Strategy</span></h2>
-        <textarea id="strategyAFuncText" rows="25" cols="60" class="text-grey-darkest flex-1 p-2 m-1 text-xs"
-          style="float:left; width: 100%;"></textarea>
+      <div class="overlay-titlebar">
+        <span class="overlay-title-badge overlay-title-badge-a">ROBOT A</span>
+        <span class="overlay-title-subtitle">Control Panel</span>
       </div>
+      <div class="overlay-panel-body">
+        <details class="overlay-section" open>
+          <summary>Status</summary>
+          <textarea id="statusAText" rows="7" cols="60" class="text-grey-darkest flex-1 p-2 m-1 text-xs"
+            style="width: 100%;"></textarea>
+        </details>
+        <details class="overlay-section">
+          <summary>Strategy</summary>
+          <textarea id="strategyAFuncText" rows="20" cols="60" class="text-grey-darkest flex-1 p-2 m-1 text-xs"
+            style="width: 100%;"></textarea>
+        </details>
+        <details class="overlay-section" open>
+          <summary>FSM Tuning</summary>
+          <div class="fsm-tuning-grid">
+            <label>Min ticks in state: <span id="fsmA_minTicksVal">18</span></label>
+            <input id="fsmA_minTicks" type="range" min="1" max="80" value="18" step="1" oninput="UpdateSettings();">
 
+            <label>No-progress distance: <span id="fsmA_noProgressDistanceVal">0.25</span></label>
+            <input id="fsmA_noProgressDistance" type="range" min="0" max="3" value="0.25" step="0.05" oninput="UpdateSettings();">
 
+            <label>No-progress ticks threshold: <span id="fsmA_noProgressTicksThresholdVal">180</span></label>
+            <input id="fsmA_noProgressTicksThreshold" type="range" min="30" max="600" value="180" step="5" oninput="UpdateSettings();">
+
+            <label>Critical border radius factor: <span id="fsmA_criticalBorderRadiusFactorVal">1.8</span></label>
+            <input id="fsmA_criticalBorderRadiusFactor" type="range" min="1" max="4" value="1.8" step="0.1" oninput="UpdateSettings();">
+
+            <label>Near-border dojo factor: <span id="fsmA_nearBorderDojoFactorVal">0.45</span></label>
+            <input id="fsmA_nearBorderDojoFactor" type="range" min="0.2" max="0.8" value="0.45" step="0.01" oninput="UpdateSettings();">
+
+            <label>Near-border side radius factor: <span id="fsmA_nearBorderSideRadiusFactorVal">2.5</span></label>
+            <input id="fsmA_nearBorderSideRadiusFactor" type="range" min="1" max="6" value="2.5" step="0.1" oninput="UpdateSettings();">
+
+            <label>Front-strong radius factor: <span id="fsmA_frontStrongRadiusFactorVal">3.0</span></label>
+            <input id="fsmA_frontStrongRadiusFactor" type="range" min="1" max="6" value="3" step="0.1" oninput="UpdateSettings();">
+
+            <label>Front-strong minimum hits: <span id="fsmA_frontStrongMinHitsVal">2</span></label>
+            <input id="fsmA_frontStrongMinHits" type="range" min="1" max="6" value="2" step="1" oninput="UpdateSettings();">
+
+            <label>High-energy threshold: <span id="fsmA_highEnergyThresholdVal">70</span></label>
+            <input id="fsmA_highEnergyThreshold" type="range" min="30" max="100" value="70" step="1" oninput="UpdateSettings();">
+
+            <label>Low-energy threshold: <span id="fsmA_lowEnergyThresholdVal">30</span></label>
+            <input id="fsmA_lowEnergyThreshold" type="range" min="0" max="70" value="30" step="1" oninput="UpdateSettings();">
+
+            <label>Contact attack-energy threshold: <span id="fsmA_contactAttackEnergyThresholdVal">35</span></label>
+            <input id="fsmA_contactAttackEnergyThreshold" type="range" min="10" max="80" value="35" step="1" oninput="UpdateSettings();">
+          </div>
+        </details>
+      </div>
     </div>
   </div>
 
   <div id="myRightNav" class="overlay-right">
     <a href="javascript:void(0)" class="closebtn" onclick="closeRightNav()">&times;</a>
     <div class="overlay-right-content">
-      <a href="#"><span class="bg-red-600 p-2 rounded-lg">ROBOT B</span></a>
+      <div class="overlay-titlebar">
+        <span class="overlay-title-badge overlay-title-badge-b">ROBOT B</span>
+        <span class="overlay-title-subtitle">Control Panel</span>
+      </div>
 
-      <div>
-        <h2><span class="text-white p-2 rounded-lg">Status</span></h2>
-        <textarea id="statusBText" rows="5" cols="60" class="text-grey-darkest flex-1 p-2 m-1 text-xs"
-          style="float:right; width: 100%;"></textarea>
-        <h2><span class="text-white p-2 rounded-lg">Strategy</span></h2>
-        <textarea id="strategyBFuncText" rows="50" cols="60" class="text-grey-darkest flex-1 p-2 m-1 text-xs"
-          style="float:right; width: 100%;"></textarea>
+      <div class="overlay-panel-body">
+        <details class="overlay-section" open>
+          <summary>Status</summary>
+          <textarea id="statusBText" rows="7" cols="60" class="text-grey-darkest flex-1 p-2 m-1 text-xs"
+            style="width: 100%;"></textarea>
+        </details>
+        <details class="overlay-section">
+          <summary>Strategy</summary>
+          <textarea id="strategyBFuncText" rows="20" cols="60" class="text-grey-darkest flex-1 p-2 m-1 text-xs"
+            style="width: 100%;"></textarea>
+        </details>
+        <details class="overlay-section" open>
+          <summary>FSM Tuning</summary>
+          <div class="fsm-tuning-grid">
+            <label>Min ticks in state: <span id="fsmB_minTicksVal">18</span></label>
+            <input id="fsmB_minTicks" type="range" min="1" max="80" value="18" step="1" oninput="UpdateSettings();">
+
+            <label>No-progress distance: <span id="fsmB_noProgressDistanceVal">0.25</span></label>
+            <input id="fsmB_noProgressDistance" type="range" min="0" max="3" value="0.25" step="0.05" oninput="UpdateSettings();">
+
+            <label>No-progress ticks threshold: <span id="fsmB_noProgressTicksThresholdVal">180</span></label>
+            <input id="fsmB_noProgressTicksThreshold" type="range" min="30" max="600" value="180" step="5" oninput="UpdateSettings();">
+
+            <label>Critical border radius factor: <span id="fsmB_criticalBorderRadiusFactorVal">1.8</span></label>
+            <input id="fsmB_criticalBorderRadiusFactor" type="range" min="1" max="4" value="1.8" step="0.1" oninput="UpdateSettings();">
+
+            <label>Near-border dojo factor: <span id="fsmB_nearBorderDojoFactorVal">0.45</span></label>
+            <input id="fsmB_nearBorderDojoFactor" type="range" min="0.2" max="0.8" value="0.45" step="0.01" oninput="UpdateSettings();">
+
+            <label>Near-border side radius factor: <span id="fsmB_nearBorderSideRadiusFactorVal">2.5</span></label>
+            <input id="fsmB_nearBorderSideRadiusFactor" type="range" min="1" max="6" value="2.5" step="0.1" oninput="UpdateSettings();">
+
+            <label>Front-strong radius factor: <span id="fsmB_frontStrongRadiusFactorVal">3.0</span></label>
+            <input id="fsmB_frontStrongRadiusFactor" type="range" min="1" max="6" value="3" step="0.1" oninput="UpdateSettings();">
+
+            <label>Front-strong minimum hits: <span id="fsmB_frontStrongMinHitsVal">2</span></label>
+            <input id="fsmB_frontStrongMinHits" type="range" min="1" max="6" value="2" step="1" oninput="UpdateSettings();">
+
+            <label>High-energy threshold: <span id="fsmB_highEnergyThresholdVal">70</span></label>
+            <input id="fsmB_highEnergyThreshold" type="range" min="30" max="100" value="70" step="1" oninput="UpdateSettings();">
+
+            <label>Low-energy threshold: <span id="fsmB_lowEnergyThresholdVal">30</span></label>
+            <input id="fsmB_lowEnergyThreshold" type="range" min="0" max="70" value="30" step="1" oninput="UpdateSettings();">
+
+            <label>Contact attack-energy threshold: <span id="fsmB_contactAttackEnergyThresholdVal">35</span></label>
+            <input id="fsmB_contactAttackEnergyThreshold" type="range" min="10" max="80" value="35" step="1" oninput="UpdateSettings();">
+          </div>
+        </details>
       </div>
     </div>
   </div>
@@ -226,6 +316,36 @@
   </script>
 
   <script>
+    function readRobotFsmConfig(prefix) {
+      return {
+        minTicksInState: Number(document.getElementById(`fsm${prefix}_minTicks`).value),
+        noProgressDistance: Number(document.getElementById(`fsm${prefix}_noProgressDistance`).value),
+        noProgressTicksThreshold: Number(document.getElementById(`fsm${prefix}_noProgressTicksThreshold`).value),
+        criticalBorderRadiusFactor: Number(document.getElementById(`fsm${prefix}_criticalBorderRadiusFactor`).value),
+        nearBorderDojoFactor: Number(document.getElementById(`fsm${prefix}_nearBorderDojoFactor`).value),
+        nearBorderSideRadiusFactor: Number(document.getElementById(`fsm${prefix}_nearBorderSideRadiusFactor`).value),
+        frontStrongRadiusFactor: Number(document.getElementById(`fsm${prefix}_frontStrongRadiusFactor`).value),
+        frontStrongMinHits: Number(document.getElementById(`fsm${prefix}_frontStrongMinHits`).value),
+        highEnergyThreshold: Number(document.getElementById(`fsm${prefix}_highEnergyThreshold`).value),
+        lowEnergyThreshold: Number(document.getElementById(`fsm${prefix}_lowEnergyThreshold`).value),
+        contactAttackEnergyThreshold: Number(document.getElementById(`fsm${prefix}_contactAttackEnergyThreshold`).value)
+      };
+    }
+
+    function renderRobotFsmConfig(prefix, config) {
+      document.getElementById(`fsm${prefix}_minTicksVal`).textContent = config.minTicksInState;
+      document.getElementById(`fsm${prefix}_noProgressDistanceVal`).textContent = config.noProgressDistance.toFixed(2);
+      document.getElementById(`fsm${prefix}_noProgressTicksThresholdVal`).textContent = config.noProgressTicksThreshold;
+      document.getElementById(`fsm${prefix}_criticalBorderRadiusFactorVal`).textContent = config.criticalBorderRadiusFactor.toFixed(1);
+      document.getElementById(`fsm${prefix}_nearBorderDojoFactorVal`).textContent = config.nearBorderDojoFactor.toFixed(2);
+      document.getElementById(`fsm${prefix}_nearBorderSideRadiusFactorVal`).textContent = config.nearBorderSideRadiusFactor.toFixed(1);
+      document.getElementById(`fsm${prefix}_frontStrongRadiusFactorVal`).textContent = config.frontStrongRadiusFactor.toFixed(1);
+      document.getElementById(`fsm${prefix}_frontStrongMinHitsVal`).textContent = config.frontStrongMinHits;
+      document.getElementById(`fsm${prefix}_highEnergyThresholdVal`).textContent = config.highEnergyThreshold;
+      document.getElementById(`fsm${prefix}_lowEnergyThresholdVal`).textContent = config.lowEnergyThreshold;
+      document.getElementById(`fsm${prefix}_contactAttackEnergyThresholdVal`).textContent = config.contactAttackEnergyThreshold;
+    }
+
     function UpdateSettings() {
       const v = slider_masterTimeSpeed.value;
       deltaTime = v / 100;
@@ -236,6 +356,19 @@
       playSounds = input_playsounds.checked;
       input_playcollision_sounds.disabled = !input_playsounds.checked;
       playCollisionSound = input_playcollision_sounds.checked && !input_playcollision_sounds.disabled;
+      showFsmDebug = input_showfsmdebug.checked;
+
+      if (typeof fsmTuningConfigs === "undefined" || fsmTuningConfigs == null) {
+        window.fsmTuningConfigs = {
+          A: {},
+          B: {}
+        };
+      }
+
+      fsmTuningConfigs.A = readRobotFsmConfig("A");
+      fsmTuningConfigs.B = readRobotFsmConfig("B");
+      renderRobotFsmConfig("A", fsmTuningConfigs.A);
+      renderRobotFsmConfig("B", fsmTuningConfigs.B);
 
     }
   </script>

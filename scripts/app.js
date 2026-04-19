@@ -16,6 +16,35 @@ var playSounds = true;
 var playCollisionSound = true;
 var showBoundaries = false;
 var showCameraView = false;
+var showFsmDebug = true;
+var fsmTuningConfigs = {
+	A: {
+		minTicksInState: 18,
+		noProgressDistance: 0.25,
+		noProgressTicksThreshold: 180,
+		criticalBorderRadiusFactor: 1.8,
+		nearBorderDojoFactor: 0.45,
+		nearBorderSideRadiusFactor: 2.5,
+		frontStrongRadiusFactor: 3.0,
+		frontStrongMinHits: 2,
+		highEnergyThreshold: 70,
+		lowEnergyThreshold: 30,
+		contactAttackEnergyThreshold: 35
+	},
+	B: {
+		minTicksInState: 18,
+		noProgressDistance: 0.25,
+		noProgressTicksThreshold: 180,
+		criticalBorderRadiusFactor: 1.8,
+		nearBorderDojoFactor: 0.45,
+		nearBorderSideRadiusFactor: 2.5,
+		frontStrongRadiusFactor: 3.0,
+		frontStrongMinHits: 2,
+		highEnergyThreshold: 70,
+		lowEnergyThreshold: 30,
+		contactAttackEnergyThreshold: 35
+	}
+};
 
 let score_A = 0;
 let score_B = 0;
@@ -180,6 +209,10 @@ function draw() {
 
 	game.draw();
 
+	if (showFsmDebug) {
+		drawFsmDebug();
+	}
+
 	// CAMERA VIEW
 	if (showCameraView) {
 		var imgSize = 200;
@@ -189,6 +222,52 @@ function draw() {
 
 	scoreAEl.innerHTML = score_A;
 	scoreBEl.innerHTML = score_B;
+}
+
+function drawFsmDebug() {
+	const rows = [];
+	if (game.player_A) rows.push({ label: "A", player: game.player_A });
+	if (game.player_B) rows.push({ label: "B", player: game.player_B });
+	if (rows.length === 0) return;
+
+	const x = 12;
+	const y = 120;
+	const panelWidth = 420;
+	const rowHeight = 86;
+	const panelHeight = 16 + rows.length * rowHeight;
+
+	ctx.save();
+	ctx.fillStyle = "rgba(0,0,0,0.55)";
+	ctx.fillRect(x, y, panelWidth, panelHeight);
+	ctx.strokeStyle = "rgba(255,255,255,0.25)";
+	ctx.lineWidth = 1;
+	ctx.strokeRect(x, y, panelWidth, panelHeight);
+
+	ctx.font = "bold 12px verdana";
+	ctx.fillStyle = "white";
+	ctx.fillText("FSM Debug", x + 10, y + 18);
+
+	ctx.font = "11px monospace";
+	rows.forEach((entry, index) => {
+		const player = entry.player;
+		const fsm = player.fsm || {};
+		const s = fsm.lastSignals || {};
+		const offsetY = y + 36 + index * rowHeight;
+		const state = fsm.enabled ? (fsm.currentState || "INIT") : "MANUAL";
+		const reason = fsm.lastReason || "NONE";
+		const borderFront = s.distBorderFront === Infinity ? "INF" : s.distBorderFront;
+		const borderSide = s.distBorderSideMin === Infinity ? "INF" : s.distBorderSideMin;
+
+		ctx.fillStyle = player.color;
+		ctx.fillText(`[${entry.label}]`, x + 10, offsetY);
+		ctx.fillStyle = "white";
+		ctx.fillText(`state=${state} reason=${reason}`, x + 46, offsetY);
+		ctx.fillText(`energy=${Math.round(player.energy)} contact=${player.inContact ? 1 : 0} visible=${s.enemyVisible ? 1 : 0}`, x + 46, offsetY + 16);
+		ctx.fillText(`frontStrong=${s.enemyFrontStrong ? 1 : 0} borderFront=${borderFront} borderSide=${borderSide}`, x + 46, offsetY + 32);
+		ctx.fillText(`noProgressTicks=${s.noProgressTicks || 0}`, x + 46, offsetY + 48);
+	});
+
+	ctx.restore();
 }
 
 function scoreGoal(yuko) {
@@ -291,4 +370,5 @@ function loop() {
 
 prepare();
 init();
+UpdateSettings();
 loop();

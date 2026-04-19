@@ -68,7 +68,9 @@ class Game {
 
         // player A
         this.player_A = new Player(width / 2 - 100, height / 2, playerSize);
+        this.player_A.slot = "A";
         this.player_A.strategyFunc = Strategy.randomDrive;
+        this.player_A.fsm.enabled = true;
         this.player_A.color = "rgb(0,0,255,0.99)";
         this.player_A.bgcolor = "rgb(0,0,255,0.8)";
         this.player_A.walls.forEach(wall => {
@@ -80,7 +82,9 @@ class Game {
         if (true) {
             //player B
             this.player_B = new Player(width / 2 + 100, height / 2, playerSize);
+            this.player_B.slot = "B";
             this.player_B.strategyFunc = Strategy.randomDrive;
+            this.player_B.fsm.enabled = true;
             this.player_B.color = "rgb(255,0,0,0.99)";
             this.player_B.bgcolor = "rgb(255,0,0,0.8)";
             this.player_B.walls.forEach(wall => {
@@ -94,7 +98,9 @@ class Game {
         if (false) {
             // Dummy player for test
             this.player_Dummy = new Player(width / 2, height / 2, playerSize);
+            this.player_Dummy.slot = "D";
             this.player_Dummy.strategyFunc = Strategy.IdleDrive;
+            this.player_Dummy.fsm.enabled = false;
             // No visible for others
             this.player_Dummy.walls.forEach(wall => {
                 this.walls.push(wall);
@@ -113,8 +119,10 @@ class Game {
         this.player_A.pos.y = height / 2;
         this.player_A.heading = Math.random() * Math.PI; // convert to radians
         this.player_A.strategyFunc = Strategy.randomDrive;
+        this.player_A.fsm.enabled = true;
         if (this.mode == GAME_MODE.PLAYERvsCPU) {
             this.player_A.strategyFunc = Strategy.remoteFacing;
+            this.player_A.fsm.enabled = false;
         }
         this.player_A.reset();
 
@@ -123,6 +131,7 @@ class Game {
             this.player_B.pos.y = height / 2;
             this.player_B.heading = 180 + Math.random() * Math.PI; // convert to radians
             this.player_B.strategyFunc = Strategy.randomDrive;
+            this.player_B.fsm.enabled = true;
 
             this.player_B.reset();
         }
@@ -143,6 +152,16 @@ class Game {
         if (input.K3) this.player_A.strategyFunc = Strategy.attackDrive;
         if (input.K4) this.player_A.strategyFunc = Strategy.keepInsideDrive;
         if (input.K5) this.player_A.strategyFunc = Strategy.evadeDrive;
+        if (input.K1 || input.K2 || input.K3 || input.K4 || input.K5) {
+            this.player_A.fsm.enabled = false;
+            this.player_A.fsm.currentState = "MANUAL";
+            this.player_A.fsm.lastReason = "MANUAL_KEY_OVERRIDE";
+        }
+        if (input.K0) {
+            this.player_A.fsm.enabled = true;
+            this.player_A.fsm.currentState = null;
+            this.player_A.fsm.lastReason = "MANUAL_TO_FSM";
+        }
 
 
 
@@ -159,7 +178,7 @@ class Game {
             this.players.forEach(player => {
                 player.scan(this.walls, BOUNDARY_TYPE.PLAYER, player.visionLayer[VISION_LAYER.PLAYER])
                 player.scan(this.walls, BOUNDARY_TYPE.DOJO, player.visionLayer[VISION_LAYER.DOJO])
-
+                Strategy.applyStateMachine(player);
             });
 
             this.players.forEach(player => {

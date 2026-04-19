@@ -35,6 +35,15 @@ class Player {
 
 		this.strategyFunc = Strategy.IdleDrive;
 		this.memory = null; // {distance:0, dir:1};
+		this.fsm = {
+			enabled: true,
+			currentState: null,
+			lastReason: "INIT",
+			ticksInState: 0,
+			noProgressTicks: 0,
+			lastDistance: 0,
+			lastSignals: null,
+		};
 
 
 		this.fieldOfView = 120;
@@ -90,6 +99,12 @@ class Player {
 		this.energy = 100;
 
 		this.memory = null;
+		this.fsm.currentState = null;
+		this.fsm.lastReason = "RESET";
+		this.fsm.ticksInState = 0;
+		this.fsm.noProgressTicks = 0;
+		this.fsm.lastDistance = this.distance;
+		this.fsm.lastSignals = null;
 
 		this.lastTrailPos = this.pos.copy();
 
@@ -107,7 +122,13 @@ class Player {
 			contact: "t"+ this.contact.top +"-l"+ this.contact.left +"-r"+ this.contact.right +"-b"+ this.contact.bottom,
 			energy: this.energy.toFixed(0),
 			distance: this.distance.toFixed(0),
-			memory: this.memory
+			memory: this.memory,
+			fsm: {
+				enabled: this.fsm.enabled,
+				state: this.fsm.currentState,
+				reason: this.fsm.lastReason,
+				signals: this.fsm.lastSignals
+			}
 		};
 	}
 
