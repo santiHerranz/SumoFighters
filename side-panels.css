@@ -346,3 +346,65 @@
                 right: 10px;
             }
         }
+        .brain-controls label {
+            display: block;
+            font-size: 12px;
+            margin: 4px 0 8px 0;
+        }
+
+        .brain-controls select {
+            display: block;
+            width: 100%;
+            margin-top: 2px;
+            padding: 3px 4px;
+            border-radius: 4px;
+            background: rgba(255, 255, 255, 0.95);
+            color: #111;
+            font-size: 12px;
+        }
+
+        .brain-now {
+            font-family: monospace;
+            font-size: 11px;
+            line-height: 1.5;
+            padding: 6px 8px;
+            margin-bottom: 8px;
+            border-radius: 6px;
+            background: rgba(255, 255, 255, 0.08);
+            white-space: pre-wrap;
+        }
+
+        .brain-learning {
+            width: 100%;
+            font-size: 11px;
+            font-family: monospace;
+            border-collapse: collapse;
+            margin-bottom: 8px;
+        }
+
+        .brain-learning th,
+        .brain-learning td {
+            padding: 2px 4px;
+            text-align: right;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+        }
+
+        .brain-learning th:first-child,
+        .brain-learning td:first-child {
+            text-align: left;
+        }
+
+        .brain-learning tr.brain-learning-current td {
+            color: rgb(253, 224, 71);
+            font-weight: bold;
+        }
+
+        .brain-reset {
+            font-size: 11px;
+            padding: 3px 10px;
+            border-radius: 4px;
+            border: 1px solid rgba(255, 255, 255, 0.35);
+            background: transparent;
+            color: #fff;
+            cursor: pointer;
+        }

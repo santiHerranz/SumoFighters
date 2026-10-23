@@ -77,6 +77,7 @@
           type="range" min="0" max="400" step="5" value="100" style="width:100%" oninput="UpdateSettings();">
 
         <label><input type=checkbox id=input_showrays onchange="UpdateSettings();"> Show Rays</label>
+        <label><input type=checkbox id=input_showperception checked onchange="UpdateSettings();"> Show AI perception</label>
         <label><input type=checkbox id=input_playsounds checked onchange="UpdateSettings();"> Play sounds</label>
       </div>
       <div class="hidden">
@@ -96,6 +97,29 @@
       </div>
       <div class="overlay-panel-body">
         <details class="overlay-section" open>
+          <summary>Brain</summary>
+          <div class="brain-controls">
+            <label>Brain
+              <select id="brainA_type" onchange="UpdateBrains();">
+                <option value="adaptive" selected>Adaptive (utility AI + learning)</option>
+                <option value="classic">Classic FSM</option>
+              </select>
+            </label>
+            <label>Game plan
+              <select id="brainA_plan" onchange="UpdateBrains();">
+                <option value="AUTO" selected>Auto: learn what beats this opponent</option>
+                <option value="BULL">Bull: charges early, pushes hard</option>
+                <option value="MATADOR">Matador: side-steps charges, counters</option>
+                <option value="TURTLE">Turtle: holds the centre, saves energy</option>
+                <option value="HUNTER">Hunter: flanks to the inside line</option>
+              </select>
+            </label>
+          </div>
+          <div id="brainA_now" class="brain-now"></div>
+          <table id="brainA_learning" class="brain-learning"></table>
+          <button class="brain-reset" onclick="ResetLearning('A')">Reset learning</button>
+        </details>
+        <details class="overlay-section" open>
           <summary>Status</summary>
           <textarea id="statusAText" rows="7" cols="60" class="text-grey-darkest flex-1 p-2 m-1 text-xs"
             style="width: 100%;"></textarea>
@@ -106,7 +130,7 @@
             style="width: 100%;"></textarea>
         </details>
         <details class="overlay-section" open>
-          <summary>FSM Tuning</summary>
+          <summary>Classic FSM Tuning</summary>
           <div class="fsm-tuning-grid">
             <label>Min ticks in state: <span id="fsmA_minTicksVal">18</span></label>
             <input id="fsmA_minTicks" type="range" min="1" max="80" value="18" step="1" oninput="UpdateSettings();">
@@ -156,6 +180,29 @@
 
       <div class="overlay-panel-body">
         <details class="overlay-section" open>
+          <summary>Brain</summary>
+          <div class="brain-controls">
+            <label>Brain
+              <select id="brainB_type" onchange="UpdateBrains();">
+                <option value="adaptive" selected>Adaptive (utility AI + learning)</option>
+                <option value="classic">Classic FSM</option>
+              </select>
+            </label>
+            <label>Game plan
+              <select id="brainB_plan" onchange="UpdateBrains();">
+                <option value="AUTO" selected>Auto: learn what beats this opponent</option>
+                <option value="BULL">Bull: charges early, pushes hard</option>
+                <option value="MATADOR">Matador: side-steps charges, counters</option>
+                <option value="TURTLE">Turtle: holds the centre, saves energy</option>
+                <option value="HUNTER">Hunter: flanks to the inside line</option>
+              </select>
+            </label>
+          </div>
+          <div id="brainB_now" class="brain-now"></div>
+          <table id="brainB_learning" class="brain-learning"></table>
+          <button class="brain-reset" onclick="ResetLearning('B')">Reset learning</button>
+        </details>
+        <details class="overlay-section" open>
           <summary>Status</summary>
           <textarea id="statusBText" rows="7" cols="60" class="text-grey-darkest flex-1 p-2 m-1 text-xs"
             style="width: 100%;"></textarea>
@@ -166,7 +213,7 @@
             style="width: 100%;"></textarea>
         </details>
         <details class="overlay-section" open>
-          <summary>FSM Tuning</summary>
+          <summary>Classic FSM Tuning</summary>
           <div class="fsm-tuning-grid">
             <label>Min ticks in state: <span id="fsmB_minTicksVal">18</span></label>
             <input id="fsmB_minTicks" type="range" min="1" max="80" value="18" step="1" oninput="UpdateSettings();">
@@ -359,6 +406,7 @@
       masterTimeSpeedVal.textContent = timeScale.toFixed(2) + "x";
 
       showRays = input_showrays.checked;
+      showPerception = input_showperception.checked;
       
       playSounds = input_playsounds.checked;
       input_playcollision_sounds.disabled = !input_playsounds.checked;
@@ -387,6 +435,7 @@
   <script src="scripts/trail.js"></script>
   <script src="scripts/particle.js"></script>
   <script src="scripts/dojo.js"></script>
+  <script src="scripts/perception.js"></script>
   <script src="scripts/strategy.js"></script>
   <script src="scripts/strategy-attack.js"></script>
   <script src="scripts/strategy-attack-state.js"></script>
@@ -395,6 +444,14 @@
   <script src="scripts/strategy-seek.js"></script>
   <script src="scripts/strategy-keepinside.js"></script>
   <script src="scripts/strategy-sidemoves.js"></script>
+  <script src="scripts/strategy-search.js"></script>
+  <script src="scripts/strategy-center.js"></script>
+  <script src="scripts/strategy-charge.js"></script>
+  <script src="scripts/strategy-finish.js"></script>
+  <script src="scripts/strategy-flank.js"></script>
+  <script src="scripts/strategy-matador.js"></script>
+  <script src="scripts/strategy-escape.js"></script>
+  <script src="scripts/brain.js"></script>
   <script src="scripts/player.js"></script>
   <script src="scripts/game.js"></script>
   <script src="scripts/app.js"></script>

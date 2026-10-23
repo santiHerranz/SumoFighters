@@ -36,6 +36,7 @@ var deltaTime = BASE_DELTA_TIME;
 // tick and the next pending one. Used to lerp positions for smooth slow-mo.
 var renderAlpha = 0;
 var showRays = false;
+var showPerception = true;
 var showTrails = true;
 
 var playSounds = true;
@@ -110,6 +111,8 @@ function prepare() {
 	ctx = canvas.getContext('2d');
 
 	game.prepare();
+	// New robots after a resize: re-apply the brain panel choices.
+	UpdateBrains();
 
 	if (game.player_B)
 		game.status = GAME_STATUS.GAME_MENU;
@@ -155,6 +158,56 @@ function init() {
 	yukoScoreA.style.display = 'none';
 	yukoScoreB.style.display = 'none';
 
+	renderLearning();
+
+}
+
+// Brain panel (per robot): brain type, game plan, live decision and what it learned.
+function UpdateBrains() {
+	[["A", game.player_A], ["B", game.player_B]].forEach(([slot, player]) => {
+		if (!player) return;
+		const type = document.getElementById(`brain${slot}_type`).value;
+		const planSelect = document.getElementById(`brain${slot}_plan`);
+		planSelect.disabled = type != "adaptive";
+		Brain.configure(player, type, planSelect.value);
+	});
+	renderLearning();
+}
+
+function ResetLearning(slot) {
+	const player = slot == "A" ? game.player_A : game.player_B;
+	if (!player) return;
+	Brain.resetLearning(player);
+	renderLearning();
+}
+
+function renderLearning() {
+	[["A", game.player_A], ["B", game.player_B]].forEach(([slot, player]) => {
+		const table = document.getElementById(`brain${slot}_learning`);
+		if (!table || !player) return;
+		const rows = Brain.learningRows(player);
+		if (player.brainType != "adaptive" || rows.length == 0) {
+			table.innerHTML = "";
+			return;
+		}
+		table.innerHTML = "<tr><th>Plan</th><th>Rounds</th><th>W-T-L</th><th>Value</th></tr>" + rows.map(row =>
+			`<tr class="${row.current ? "brain-learning-current" : ""}"><td>${row.current ? "&#9656; " : ""}${row.label}</td>` +
+			`<td>${row.rounds}</td><td>${row.wins}-${row.ties}-${row.losses}</td>` +
+			`<td>${row.value == null ? "-" : row.value.toFixed(2)}</td></tr>`).join("");
+	});
+}
+
+function describeBrain(player) {
+	if (!player.fsm.enabled)
+		return "Manual control (hotkeys / remote)";
+	if (player.brainType == "classic")
+		return `Classic FSM\nstate  ${player.fsm.currentState}\nreason ${player.fsm.lastReason}`;
+	const brain = player.brain, p = player.perception;
+	if (!brain || !p) return "";
+	const shoves = p.model.pushBalance > 0.15 ? "winning" : p.model.pushBalance < -0.15 ? "losing" : "even";
+	return `plan    ${brain.plan.label}${player.planChoice == "AUTO" ? " (auto)" : " (fixed)"}\n` +
+		`tactic  ${brain.tactic || "-"}  ${brain.reason}\n` +
+		`enemy   energy~${Math.round(p.enemy.energyEst)}  aggression ${p.model.aggression.toFixed(2)}  shoves ${shoves}`;
 }
 
 
@@ -177,26 +230,13 @@ function evaluateMatchEvents() {
 
 	if (game.players.length > 1 && !game.player_Dummy) {
 
-		if (game.player_B && game.checkDojoLimits(game.player_B, game.dojo)) {
-			score_A += 1;
-			scoreGoal("A");
-			return;
-		}
-
-		if (game.checkDojoLimits(game.player_A, game.dojo)) {
-			score_B += 1;
-			scoreGoal("B");
-			return;
-		}
-
-		if (game.player_A.energy <= 0 && game.player_B.energy <= 0) {
-			scoreGoal("TIE");
-			return;
-		}
-
-		if (game.matchTime >= MATCH_DURATION_SECONDS) {
-			resolveTimeout();
-			return;
+		const result = game.checkRoundResult();
+		if (result) {
+			if (result.winner == "A") score_A += 1;
+			if (result.winner == "B") score_B += 1;
+			game.finishRound(result);
+			renderLearning();
+			scoreGoal(result.winner);
 		}
 
 	} else {
@@ -208,22 +248,6 @@ function evaluateMatchEvents() {
 			scoreGoal("TIE");
 			return;
 		}
-	}
-}
-
-// Round expired without a ring-out or KO. Winner is the fighter with more
-// remaining energy; ties go to TIE.
-function resolveTimeout() {
-	const ea = game.player_A ? game.player_A.energy : 0;
-	const eb = game.player_B ? game.player_B.energy : 0;
-	if (ea > eb) {
-		score_A += 1;
-		scoreGoal("A");
-	} else if (eb > ea) {
-		score_B += 1;
-		scoreGoal("B");
-	} else {
-		scoreGoal("TIE");
 	}
 }
 
@@ -242,6 +266,11 @@ function refreshStatusPanels() {
 		statusAText.innerHTML = JSON.stringify(game.player_A.getInfo(), null, 2);
 	if (game.player_B)
 		statusBText.innerHTML = JSON.stringify(game.player_B.getInfo(), null, 2);
+
+	if (game.player_A)
+		brainA_now.textContent = describeBrain(game.player_A);
+	if (game.player_B)
+		brainB_now.textContent = describeBrain(game.player_B);
 }
 
 function step() {
@@ -353,6 +382,9 @@ function draw() {
 
 	applyInterpolatedRender(renderAlpha);
 	game.draw();
+	if (showPerception) {
+		drawPerception();
+	}
 	restoreInterpolatedRender();
 
 	if (showFsmDebug) {
@@ -398,7 +430,7 @@ function drawFsmDebug() {
 
 	const x = 12;
 	const y = 120;
-	const panelWidth = 420;
+	const panelWidth = 440;
 	const rowHeight = 86;
 	const panelHeight = 16 + rows.length * rowHeight;
 
@@ -411,29 +443,81 @@ function drawFsmDebug() {
 
 	ctx.font = "bold 12px verdana";
 	ctx.fillStyle = "white";
-	ctx.fillText("FSM Debug", x + 10, y + 18);
+	ctx.fillText("AI Debug", x + 10, y + 18);
 
 	ctx.font = "11px monospace";
 	rows.forEach((entry, index) => {
 		const player = entry.player;
 		const fsm = player.fsm || {};
-		const s = fsm.lastSignals || {};
 		const offsetY = y + 36 + index * rowHeight;
-		const state = fsm.enabled ? (fsm.currentState || "INIT") : "MANUAL";
-		const reason = fsm.lastReason || "NONE";
-		const borderFront = s.distBorderFront === Infinity ? "INF" : s.distBorderFront;
-		const borderSide = s.distBorderSideMin === Infinity ? "INF" : s.distBorderSideMin;
+		const lines = player.brainType == "adaptive" && fsm.enabled ? adaptiveDebugLines(player) : classicDebugLines(player);
 
 		ctx.fillStyle = player.color;
 		ctx.fillText(`[${entry.label}]`, x + 10, offsetY);
 		ctx.fillStyle = "white";
-		ctx.fillText(`state=${state} reason=${reason}`, x + 46, offsetY);
-		ctx.fillText(`energy=${Math.round(player.energy)} contact=${player.inContact ? 1 : 0} visible=${s.enemyVisible ? 1 : 0}`, x + 46, offsetY + 16);
-		ctx.fillText(`frontStrong=${s.enemyFrontStrong ? 1 : 0} borderFront=${borderFront} borderSide=${borderSide}`, x + 46, offsetY + 32);
-		ctx.fillText(`noProgressTicks=${s.noProgressTicks || 0}`, x + 46, offsetY + 48);
+		lines.forEach((line, i) => ctx.fillText(line, x + 46, offsetY + i * 16));
 	});
 
 	ctx.restore();
+}
+
+function classicDebugLines(player) {
+	const fsm = player.fsm || {};
+	const s = fsm.lastSignals || {};
+	const state = fsm.enabled ? (fsm.currentState || "INIT") : "MANUAL";
+	const borderFront = s.distBorderFront === Infinity ? "INF" : s.distBorderFront;
+	const borderSide = s.distBorderSideMin === Infinity ? "INF" : s.distBorderSideMin;
+	return [
+		`classic state=${state} reason=${fsm.lastReason || "NONE"}`,
+		`energy=${Math.round(player.energy)} contact=${player.inContact ? 1 : 0} visible=${s.enemyVisible ? 1 : 0}`,
+		`frontStrong=${s.enemyFrontStrong ? 1 : 0} borderFront=${borderFront} borderSide=${borderSide}`,
+		`noProgressTicks=${s.noProgressTicks || 0}`,
+	];
+}
+
+function adaptiveDebugLines(player) {
+	const brain = player.brain, p = player.perception;
+	if (!brain || !p) return ["adaptive (starting)"];
+	const top = (brain.scores || []).slice(0, 3).map(s => `${s.id} ${s.score.toFixed(2)}`).join("  ");
+	const edge = v => Number.isFinite(v) ? Math.round(v) : "?";
+	return [
+		`${brain.planId} > ${brain.tactic} (${brain.reason})`,
+		`energy=${Math.round(player.energy)} enemy~${Math.round(p.enemy.energyEst)} contact=${p.contact.active ? (p.contact.front ? "front" : p.contact.back ? "back" : "side") : "-"} visible=${p.enemy.visible ? 1 : 0}`,
+		`edge=${edge(p.self.edgeMargin)} enemyEdge=${edge(p.enemy.edgeMargin)} aggr=${p.model.aggression.toFixed(2)} push=${p.model.pushBalance.toFixed(2)}`,
+		`top: ${top}`,
+	];
+}
+
+// What each adaptive robot believes, drawn relative to where its body was when
+// it sensed: the ring centre from its self localisation (cross) and the tracked
+// opponent (circle, dashed while out of sight, i.e. predicted).
+function drawPerception() {
+	game.players.forEach(player => {
+		const p = player.perception;
+		if (!p || !p.self.localized || player.brainType != "adaptive") return;
+		const cx = p.origin.x - p.self.pos.x;
+		const cy = p.origin.y - p.self.pos.y;
+
+		ctx.save();
+		ctx.strokeStyle = player.color;
+		ctx.lineWidth = 2;
+
+		ctx.beginPath();
+		ctx.moveTo(cx - 8, cy - 8);
+		ctx.lineTo(cx + 8, cy + 8);
+		ctx.moveTo(cx + 8, cy - 8);
+		ctx.lineTo(cx - 8, cy + 8);
+		ctx.stroke();
+
+		const e = p.enemy;
+		if (e.pos && e.ticksUnseen < 120) {
+			ctx.setLineDash(e.visible ? [] : [5, 5]);
+			ctx.beginPath();
+			ctx.arc(cx + e.pos.x, cy + e.pos.y, player.radius * 0.6, 0, Math.PI * 2);
+			ctx.stroke();
+		}
+		ctx.restore();
+	});
 }
 
 function scoreGoal(yuko) {
