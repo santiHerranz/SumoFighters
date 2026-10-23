@@ -6,6 +6,7 @@ class Player {
 		this.bgcolor = "white";
 		this.color = "white";
 		this.radius = r;
+		this.name = "";
 
 		this.health = 100;
 		this.energy = 100;
@@ -35,6 +36,14 @@ class Player {
 
 		this.strategyFunc = Strategy.IdleDrive;
 		this.memory = null; // {distance:0, dir:1};
+		this.lastDrive = null;
+
+		// "adaptive" (brain.js) or "classic" (priority FSM in strategy.js).
+		this.brainType = "adaptive";
+		this.planChoice = "AUTO"; // AUTO = learn the game plan, or a GAME_PLANS id
+		this.brain = null;
+		this.learner = null;
+		this.perception = null;
 		this.fsm = {
 			enabled: true,
 			currentState: null,
@@ -108,6 +117,25 @@ class Player {
 
 		this.lastTrailPos = this.pos.copy();
 
+		// The game moved us to the start line: move the body the rays see too,
+		// or the first scan of the round finds both robots where the last one ended.
+		this.syncWalls();
+
+	}
+
+	// Move boundaries as body moves
+	syncWalls() {
+		let wall = this.walls[0];
+		wall.a.x = this.pos.x;
+		wall.a.y = this.pos.y - this.offset;
+		wall.b.x = this.pos.x;
+		wall.b.y = this.pos.y + this.offset;
+
+		wall = this.walls[1];
+		wall.a.x = this.pos.x - this.offset;
+		wall.a.y = this.pos.y;
+		wall.b.x = this.pos.x + this.offset;
+		wall.b.y = this.pos.y;
 	}
 
 	getInfo() {
@@ -127,8 +155,25 @@ class Player {
 				enabled: this.fsm.enabled,
 				state: this.fsm.currentState,
 				reason: this.fsm.lastReason,
-				signals: this.fsm.lastSignals
-			}
+				signals: this.brainType == "classic" ? this.fsm.lastSignals : undefined
+			},
+			brain: this.brainType == "adaptive" && this.brain ? {
+				plan: this.brain.planId,
+				tactic: this.brain.tactic,
+				reason: this.brain.reason,
+				passiveTicks: this.brain.passiveTicks
+			} : this.brainType,
+			perception: this.perception ? {
+				edgeMargin: Math.round(this.perception.self.edgeMargin),
+				enemyVisible: this.perception.enemy.visible,
+				enemyDistance: Math.round(this.perception.enemy.distance),
+				enemyEdgeMargin: Math.round(this.perception.enemy.edgeMargin),
+				enemyEnergyEstimate: Math.round(this.perception.enemy.energyEst),
+				opponent: {
+					aggression: +this.perception.model.aggression.toFixed(2),
+					pushBalance: +this.perception.model.pushBalance.toFixed(2)
+				}
+			} : null
 		};
 	}
 
@@ -136,10 +181,13 @@ class Player {
 
 		let d = this.strategyFunc(this);
 
-		if (d.speed > this.maxSpeed)
-			d.speed = this.maxSpeed;
-		if (d.turn > this.maxTurn)
-			d.turn = this.maxTurn;
+		// Limits apply in both directions (left turns and reverse were unbounded).
+		d.speed = Math.max(-this.maxSpeed, Math.min(this.maxSpeed, d.speed));
+		d.turn = Math.max(-this.maxTurn, Math.min(this.maxTurn, d.turn));
+		if (d.sideSpeed)
+			d.sideSpeed = Math.max(-this.maxSpeed, Math.min(this.maxSpeed, d.sideSpeed));
+
+		this.lastDrive = d;
 
 		// Apply
 		this.move(d.speed);
@@ -148,13 +196,14 @@ class Player {
 			this.sideMove(d.sideSpeed);
 	}
 
+	// Bumper sensor: inContact means touching during this tick (the game clears it
+	// before resolving collisions). The timer only latches the contact sides for a
+	// short while after the robots separate. Previously a hit was ignored while the
+	// timer ran, so a sustained push only registered once every 21 ticks.
 	hit(point) {
-
-		if (this.contactTimer == 0) {
-			this.inContact = true;
-			this.contactPoint = point;
-			this.contactTimer = 20;
-		}
+		this.inContact = true;
+		this.contactPoint = point;
+		this.contactTimer = 20;
 	}
 
 	step() {
@@ -176,18 +225,7 @@ class Player {
 
 		this.showRays = showRays;
 
-		// Move boundaries as body moves
-		let wall = this.walls[0];
-		wall.a.x = this.pos.x;
-		wall.a.y = this.pos.y - this.offset;
-		wall.b.x = this.pos.x;
-		wall.b.y = this.pos.y + this.offset;
-
-		wall = this.walls[1];
-		wall.a.x = this.pos.x - this.offset;
-		wall.a.y = this.pos.y;
-		wall.b.x = this.pos.x + this.offset;
-		wall.b.y = this.pos.y;
+		this.syncWalls();
 
 		// decode contact point into self reference sides
 		if (this.inContact && this.contactPoint != null) {

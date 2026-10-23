@@ -53,7 +53,14 @@ class Game {
 
     prepare() {
 
+        // prepare() also runs on window resize: keep each slot's brain and what it learned.
+        const kept = {};
+        this.players.forEach(p => kept[p.slot] = { brainType: p.brainType, planChoice: p.planChoice, learner: p.learner });
+        const restore = player => Object.assign(player, kept[player.slot] || {});
+
         this.players = [];
+        // Drop the old bodies too, or the rays keep hitting robots that are no longer there.
+        this.walls = [];
 
         let offset = -width;
         this.walls.push(new Boundary(0 + offset, offset, width - offset, offset, BOUNDARY_TYPE.WALL)); // top
@@ -74,6 +81,7 @@ class Game {
         // player A
         this.player_A = new Player(width / 2 - 100, height / 2, playerSize);
         this.player_A.slot = "A";
+        restore(this.player_A);
         this.player_A.strategyFunc = Strategy.randomDrive;
         this.player_A.fsm.enabled = true;
         this.player_A.color = "rgb(0,0,255,0.99)";
@@ -88,6 +96,7 @@ class Game {
             //player B
             this.player_B = new Player(width / 2 + 100, height / 2, playerSize);
             this.player_B.slot = "B";
+            restore(this.player_B);
             this.player_B.strategyFunc = Strategy.randomDrive;
             this.player_B.fsm.enabled = true;
             this.player_B.color = "rgb(255,0,0,0.99)";
@@ -148,6 +157,16 @@ class Game {
             this.player_Dummy.heading = 90; // convert to radians
             this.player_Dummy.reset();
         }
+
+        this.players.forEach(player => Brain.onRoundStart(player));
+    }
+
+    // Tell every brain how the round went so the adaptive ones can learn.
+    finishRound(result) {
+        this.players.forEach(player => {
+            const outcome = result.winner == "TIE" ? "TIE" : result.winner == player.slot ? "WIN" : "LOSS";
+            Brain.onRoundEnd(player, outcome);
+        });
     }
 
     // Poll manual hotkeys. Runs every rendered frame, never tied to the time
@@ -159,7 +178,11 @@ class Game {
         if (input.K3) this.player_A.strategyFunc = Strategy.attackDrive;
         if (input.K4) this.player_A.strategyFunc = Strategy.keepInsideDrive;
         if (input.K5) this.player_A.strategyFunc = Strategy.evadeDrive;
-        if (input.K1 || input.K2 || input.K3 || input.K4 || input.K5) {
+        if (input.K6) this.player_A.strategyFunc = Strategy.chargeDrive;
+        if (input.K7) this.player_A.strategyFunc = Strategy.flankDrive;
+        if (input.K8) this.player_A.strategyFunc = Strategy.matadorDrive;
+        if (input.K9) this.player_A.strategyFunc = Strategy.holdCenterDrive;
+        if (input.K1 || input.K2 || input.K3 || input.K4 || input.K5 || input.K6 || input.K7 || input.K8 || input.K9) {
             this.player_A.fsm.enabled = false;
             this.player_A.fsm.currentState = "MANUAL";
             this.player_A.fsm.lastReason = "MANUAL_KEY_OVERRIDE";
@@ -194,7 +217,7 @@ class Game {
         this.players.forEach(player => {
             player.scan(this.walls, BOUNDARY_TYPE.PLAYER, player.visionLayer[VISION_LAYER.PLAYER])
             player.scan(this.walls, BOUNDARY_TYPE.DOJO, player.visionLayer[VISION_LAYER.DOJO])
-            Strategy.applyStateMachine(player);
+            Brain.decide(player);
         });
 
         this.players.forEach(player => {
@@ -308,6 +331,24 @@ class Game {
     checkDojoLimits(player, dojo) {
         return !this.dojo.collide(player);
 
+    }
+
+    // Round rules shared by the browser loop and the headless arena (tools/arena.js):
+    // ring-out, double energy KO and timeout (decided by remaining energy).
+    // Returns { winner: "A" | "B" | "TIE", reason } or null while the round is open.
+    checkRoundResult() {
+        if (this.player_B && this.checkDojoLimits(this.player_B, this.dojo))
+            return { winner: "A", reason: "RING_OUT" };
+        if (this.checkDojoLimits(this.player_A, this.dojo))
+            return { winner: "B", reason: "RING_OUT" };
+        if (this.player_A.energy <= 0 && this.player_B.energy <= 0)
+            return { winner: "TIE", reason: "DOUBLE_KO" };
+        if (this.matchTime >= MATCH_DURATION_SECONDS) {
+            const ea = this.player_A.energy;
+            const eb = this.player_B.energy;
+            return { winner: ea > eb ? "A" : eb > ea ? "B" : "TIE", reason: "TIMEOUT" };
+        }
+        return null;
     }
 
     collide(one, other) {

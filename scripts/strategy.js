@@ -578,9 +578,90 @@ class Strategy {
 		};
 	}
 
+	// ---- Helpers for the perception-based tactics (strategy-search.js, -charge.js, ...) ----
 
+	// Tuning shared by the tactics. The adaptive brain's game plan overrides some
+	// of them (see GAME_PLANS in brain.js); manual hotkeys use these defaults.
+	static getTacticParams(player) {
+		const defaults = {
+			approachSpeed: 120, // cruising speed towards the opponent
+			pushSpeed: 260,     // speed into a frontal contact
+			finishSpeed: 340,   // all-in push when the opponent is at the edge
+			dodgeSpeed: 260,    // side step speed (matador, escape)
+			dodgeTrigger: 150,  // opponent distance that triggers the side step
+			holdRadius: 70,     // centre zone where HOLD CENTER stops moving
+			resistSpeed: 140,   // push back when shoved while holding
+			edgeSafety: 30,     // px kept before the ring-out distance
+			patience: 300,      // passive ticks tolerated before forcing the fight (brain)
+			pace: 1,            // how fast the battery may be spent over the round (brain)
+		};
+		const plan = player.brain && player.brain.plan;
+		return plan ? { ...defaults, ...plan.params } : defaults;
+	}
 
+	// Per-tactic memory namespaced inside player.memory, so tactics do not step
+	// on each other's keys. The brain clears a namespace when it enters the tactic.
+	static getTacticMemory(player, key, defaults) {
+		if (player.memory == null) player.memory = {};
+		if (player.memory[key] == null) player.memory[key] = { ...defaults };
+		return player.memory[key];
+	}
 
+	// Turn command that closes `gain` of the bearing error in one tick.
+	static steer(bearing, gain = 0.7) {
+		return bearing * gain / deltaTime;
+	}
 
+	// Holonomic move towards a relative bearing (forward + side move together),
+	// so the robot can travel one way while still facing the opponent.
+	static translate(bearing, speed) {
+		return {
+			speed: speed * Math.cos(bearing),
+			sideSpeed: speed * Math.sin(bearing)
+		};
+	}
+
+	// Ring governor: never travel past `safety` px before the ring-out distance in
+	// the direction of motion. Pushing an opponent is still allowed, because it is
+	// ahead of us and leaves the ring first.
+	static limitToRing(player, d, safety) {
+		const s = player.perception && player.perception.self;
+		if (!s || !s.localized) return d;
+		const room = edge => Math.max(0, edge - safety) / deltaTime;
+		if (d.speed > 0) d.speed = Math.min(d.speed, room(s.edgeAhead));
+		else if (d.speed < 0) d.speed = -Math.min(-d.speed, room(s.edgeBehind));
+		if (d.sideSpeed > 0) d.sideSpeed = Math.min(d.sideSpeed, room(s.edgeRight));
+		else if (d.sideSpeed < 0) d.sideSpeed = -Math.min(-d.sideSpeed, room(s.edgeLeft));
+		return d;
+	}
+
+	// Shove escalation for frontal contacts. The pushing pair drifts at half the
+	// speed difference, so pushing harder also costs less energy per pixel won:
+	// when the shove stalls raise the speed step by step, relax once it moves.
+	// Going all in (capped well below the speed at which the bodies would tunnel)
+	// only pays when we are ahead on energy or the opponent is near the edge;
+	// otherwise a war of attrition just drains both robots.
+	static pushSpeed(player, base) {
+		const p = player.perception;
+		const c = p.contact;
+		const memory = Strategy.getTacticMemory(player, "push", { speed: base });
+		const allIn = player.energy - p.enemy.energyEst > 5 || p.enemy.edgeMargin < 120;
+		const cap = Math.max(base, allIn ? 520 : base * 1.25);
+		if (!c.front) {
+			memory.speed = base;
+		} else if (c.advance < 1.5) {
+			memory.speed = Math.min(memory.speed + 20, cap);
+		} else if (c.advance > 4) {
+			memory.speed = Math.max(base, memory.speed - 10);
+		}
+		return Math.min(memory.speed, cap);
+	}
+
+	// Where to look: the opponent if visible, else the contact or the predicted bearing.
+	static lookBearing(p) {
+		if (p.enemy.visible) return p.enemy.bearing;
+		if (p.contact.active) return p.contact.bearing;
+		return p.enemy.predictedBearing;
+	}
 
 }
